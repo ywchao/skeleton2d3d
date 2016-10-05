@@ -6,31 +6,15 @@ require 'lib/models/Residual'
 local M = {}
 
 local function hourglass(n, f, inp)
-  -- Upper branch
-  local up1 = Residual(f,f)(inp)
-
   -- Lower branch
   local low1 = cudnn.SpatialMaxPooling(2,2,2,2)(inp)
   local low2 = Residual(f,f)(low1)
-  local low3, cntr
-
-  if n > 1 then low3, cntr = hourglass(n-1,f,low2)
+  local low3
+  if n > 1 then low3 = hourglass(n-1,f,low2)
   else
     low3 = Residual(f,f)(low2)
-    cntr = low3
   end
-
-  local low4 = Residual(f,f)(low3)
-  local up2 = nn.SpatialUpSamplingNearest(2)(low4)
-
-  -- Bring two branches together
-  return nn.CAddTable()({up1,up2}), cntr
-end
-
-local function lin(numIn, numOut, inp)
-  -- Apply 1x1 convolution, no stride, no padding
-  local l = cudnn.SpatialConvolution(numIn,numOut,1,1,1,1,0,0)(inp)
-  return cudnn.ReLU(true)(nn.SpatialBatchNormalization(numOut)(l))
+  return low3
 end
 
 function M.createModel(numPt)
@@ -41,23 +25,23 @@ function M.createModel(numPt)
   local in2 = cudnn.SpatialBatchNormalization(16)(in1)
   local in3 = cudnn.ReLU(true)(in2)
 
-  -- Hourglass
-  local hg, cntr = hourglass(4,16,in3)
+  local cntr = hourglass(4,16,in3)
+  local view = nn.View(-1):setNumInputDims(3)(cntr)
 
-  -- Linear layers to produce first set of predictions
-  local ll = lin(16,16,hg)
-
-  -- Output depth map
-  local dm = cudnn.SpatialConvolution(16,numPt,1,1,1,1,0,0)(ll)
+  -- Output depth
+  local fc1d = nn.Linear(256,64)(view)
+  local relu1d = cudnn.ReLU(true)(fc1d)
+  local depth = nn.Linear(64,numPt)(relu1d)
+  local depth = nn.AddConstant(2500)(depth)
 
   -- Output focal length
-  local view = nn.View(-1):setNumInputDims(3)(cntr)
-  local fc1 = nn.Linear(256,64)(view)
-  local relu1 = cudnn.ReLU(true)(fc1)
-  local fl = nn.Linear(64,1)(relu1)
+  local fc1f = nn.Linear(256,64)(view)
+  local relu1f = cudnn.ReLU(true)(fc1f)
+  local focal = nn.Linear(64,1)(relu1f)
+  local focal = nn.AddConstant(73.6)(focal)
 
   -- Final model
-  local model = nn.gModule({inp}, {dm, fl})
+  local model = nn.gModule({inp}, {depth, focal})
 
   -- Zero the gradients; not sure if this is necessary
   model:zeroGradParameters()

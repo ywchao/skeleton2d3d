@@ -46,20 +46,19 @@ function M.camProject(P, R, T, f, c)
   return p, D, X
 end
 
-function M.backProjectHMDM(hm, dm, f)
+function M.backProjectHMDM(hm, d, f)
 -- input
 --	hm:	3 x h x w
---	dm: N x h x w
+--	d:  N
   local pt = eval.getPreds(hm:view(1,unpack(hm:size():totable())))[1]
   local c = torch.Tensor{hm:size(3),hm:size(2)}:div(2)
   local P = torch.zeros(3,pt:size(1))
   for j = 1, pt:size(1) do
     local x = pt[j][1]
     local y = pt[j][2]
-    local d = dm[j][y][x]
-    P[1][j] = (x - c[1]) * d / f
-    P[2][j] = (y - c[2]) * d / f
-    P[3][j] = d
+    P[1][j] = (x - c[1]) * d[j] / f
+    P[2][j] = (y - c[2]) * d[j] / f
+    P[3][j] = d[j]
   end
   return P
 end

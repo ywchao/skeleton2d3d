@@ -7,9 +7,10 @@ else
 fi
 
 CUDA_VISIBLE_DEVICES=$gpu_id th main.lua \
-  -expID hg-8-lr-1e-3-bs-128-wf-1e4 \
-  -nEpochs 50 \
-  -batchSize 128 \
-  -weightFocal 10000 \
+  -expID hg-8-lr-1e-3-bs-64 \
+  -nEpochs 30 \
+  -batchSize 64 \
+  -weightFocal 1 \
   -LR 1e-3 \
   -netType hg-8
+  

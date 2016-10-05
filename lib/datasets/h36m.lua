@@ -113,33 +113,19 @@ function H36MDataset:size()
 end
 
 function H36MDataset:get(idx, train)
-  local pose
-  local focal, proj, depth
-  -- if train then
-    local pose_w = self:_loadPoseWorld(idx)
-    local pose_w = self:_normalizePose(pose_w)
-    pose, focal, proj, depth, _ = self:_sampleProj(pose_w)
-    focal = focal[1][1]
-  -- else
-  --   pose = self:_loadPoseCamera(idx)
-  --   proj = self:_loadPoseProject(idx):mul(self.inputRes / 1000)
-  --   focal = self:_loadFocal(idx):mul(self.inputRes / 1000):mean()
-  --   depth = pose[{{3}}]
-  -- end
+  local pose_w = self:_loadPoseWorld(idx)
+  local pose_w = self:_normalizePose(pose_w)
+  local pose, focal, proj, depth, _ = self:_sampleProj(pose_w)
+  local focal = focal[1][1]
 
   local hm = torch.zeros(proj:size(2), self.inputRes, self.inputRes)
   for i = 1, proj:size(2) do
     img.drawGaussian(hm[i], proj[{{},i}], 2)
   end
 
-  local dm = hm:clone()
-  for i = 1, proj:size(2) do
-    dm[i]:mul(depth[1][i])
-  end
-
   return {
     input = hm,
-    depth = dm,
+    depth = depth[1],
     focal = focal,
     pose = pose,
   }
