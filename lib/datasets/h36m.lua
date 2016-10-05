@@ -18,6 +18,16 @@ function H36MDataset:__init(opt, split)
   self.coord_c = matio.load(self.anno_file, 'coord_c')
   self.coord_p = matio.load(self.anno_file, 'coord_p')
   self.focal = matio.load(self.anno_file, 'focal')
+  -- Get mean limb lengths
+  local conn = torch.LongTensor({{ 1, 2}, { 2, 3}, { 3, 4},
+                                 { 1, 5}, { 5, 6}, { 6, 7},
+                                 { 1, 8}, { 8, 9}, { 9,10}, {10,11},
+                                 { 9,12}, {12,13}, {13,14},
+                                 { 9,15}, {15,16}, {16,17}})
+  local poses = self.coord_w:contiguous():view(-1,self.coord_w:size(2)/3,3)
+  local d1 = poses:index(2, conn:select(2,1))
+  local d2 = poses:index(2, conn:select(2,2))
+  self.mean = torch.csub(d1,d2):pow(2):sum(3):sqrt():mean(1):squeeze()
 end
 
 -- Load 3d pose in world coordinates
@@ -127,6 +137,8 @@ function H36MDataset:get(idx, train)
     input = hm,
     depth = depth[1],
     focal = focal,
+    proj = proj:t(),
+    mean = self.mean,
     pose = pose,
   }
 end

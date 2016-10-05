@@ -88,6 +88,8 @@ function DataLoader:run(kwargs)
                local input, imageSize
                local depth, depthSize, focal
                local pose, poseSize
+               local proj, projSize
+               local mean, meanSize
                for i, idx in ipairs(indices:totable()) do
                   local sample = _G.dataset:get(idx, kwargs.train)
                   if not input then
@@ -98,12 +100,24 @@ function DataLoader:run(kwargs)
                      depthSize = sample.depth:size():totable()
                      depth = torch.FloatTensor(sz, unpack(depthSize))
                      focal = torch.FloatTensor(sz, 1)
+                  end
+                  if not proj then
+                     projSize = sample.proj:size():totable()
+                     proj = torch.FloatTensor(sz, unpack(projSize))
+                  end
+                  if not mean then
+                     meanSize = sample.mean:size():totable()
+                     mean = torch.FloatTensor(sz, unpack(meanSize))
+                  end
+                  if not pose then
                      poseSize = sample.pose:size():totable()
                      pose = torch.FloatTensor(sz, unpack(poseSize))
                   end
                   input[i] = sample.input
                   depth[i] = sample.depth
                   focal[i] = sample.focal
+                  proj[i] = sample.proj
+                  mean[i] = sample.mean
                   pose[i] = sample.pose
                end
                collectgarbage()
@@ -112,6 +126,8 @@ function DataLoader:run(kwargs)
                   input = input,
                   depth = depth,
                   focal = focal,
+                  proj = proj,
+                  mean = mean,
                   pose = pose,
                }
             end,

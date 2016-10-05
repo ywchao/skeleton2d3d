@@ -59,10 +59,12 @@ function Trainer:train(epoch, loaders)
     local input = sample.input:cuda()
     local depth = sample.depth:cuda()
     local focal = sample.focal:cuda()
+    local proj = sample.proj:cuda()
+    local mean = sample.mean:cuda()
     
     -- Forward pass
-    local output = self.model:forward(input)
-    local loss = self.criterion:forward(self.model.output, {depth, focal})
+    local output = self.model:forward({input, proj})
+    local loss = self.criterion:forward(self.model.output, {depth, focal, mean})
 
     -- Compute mean per joint position error (MPJPE)
     local pred_depth = output[1]:float()
@@ -78,8 +80,8 @@ function Trainer:train(epoch, loaders)
 
     -- Backprop
     self.model:zeroGradParameters()
-    self.criterion:backward(self.model.output, {depth, focal})
-    self.model:backward(input, self.criterion.gradInput)
+    self.criterion:backward(self.model.output, {depth, focal, mean})
+    self.model:backward({input, proj}, self.criterion.gradInput)
 
     -- Optimization
     optim.rmsprop(feval, self.params, self.optimState)
@@ -118,10 +120,12 @@ function Trainer:test(epoch, iter, loaders, split)
     local input = sample.input:cuda()
     local depth = sample.depth:cuda()
     local focal = sample.focal:cuda()
+    local proj = sample.proj:cuda()
+    local mean = sample.mean:cuda()
 
     -- Forward pass
-    local output = self.model:forward(input)
-    local loss = self.criterion:forward(self.model.output, {depth, focal})
+    local output = self.model:forward({input, proj})
+    local loss = self.criterion:forward(self.model.output, {depth, focal, mean})
 
     -- Compute mean per joint position error (MPJPE)
     assert(input:size(1) == 1, 'batch size must be 1 with run({train=false})')
@@ -169,9 +173,10 @@ function Trainer:predict(loaders, split)
     -- Get input and convert to CUDA
     local index = sample.index
     local input = sample.input:cuda()
+    local proj = sample.proj:cuda()
 
     -- Forward pass
-    local output = self.model:forward(input)
+    local output = self.model:forward({input, proj})
 
     -- Copy output
     assert(input:size(1) == 1, 'batch size must be 1 with run({train=false})')
