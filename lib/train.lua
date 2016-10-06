@@ -76,7 +76,7 @@ function Trainer:train(epoch, loaders)
       local err = torch.csub(pred,pose[j]):pow(2):sum(1):sqrt():mean()
       errSum = errSum + err
     end
-    local err = errSum / size
+    local err = errSum / input:size(1)
 
     -- Backprop
     self.model:zeroGradParameters()
