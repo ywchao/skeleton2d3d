@@ -86,49 +86,25 @@ function DataLoader:run(kwargs)
             function(indices)
                local sz = indices:size(1)
                local input, imageSize
-               local depth, depthSize, focal
-               local pose, poseSize
-               local proj, projSize
-               local mean, meanSize
+               local repos, reposSize
                for i, idx in ipairs(indices:totable()) do
                   local sample = _G.dataset:get(idx, kwargs.train)
                   if not input then
                      imageSize = sample.input:size():totable()
                      input = torch.FloatTensor(sz, unpack(imageSize))
                   end
-                  if not depth then
-                     depthSize = sample.depth:size():totable()
-                     depth = torch.FloatTensor(sz, unpack(depthSize))
-                     focal = torch.FloatTensor(sz, 1)
-                  end
-                  if not proj then
-                     projSize = sample.proj:size():totable()
-                     proj = torch.FloatTensor(sz, unpack(projSize))
-                  end
-                  if not mean then
-                     meanSize = sample.mean:size():totable()
-                     mean = torch.FloatTensor(sz, unpack(meanSize))
-                  end
-                  if not pose then
-                     poseSize = sample.pose:size():totable()
-                     pose = torch.FloatTensor(sz, unpack(poseSize))
+                  if not repos then
+                     reposSize = sample.repos:size():totable()
+                     repos = torch.FloatTensor(sz, unpack(reposSize))
                   end
                   input[i] = sample.input
-                  depth[i] = sample.depth
-                  focal[i] = sample.focal
-                  proj[i] = sample.proj
-                  mean[i] = sample.mean
-                  pose[i] = sample.pose
+                  repos[i] = sample.repos
                end
                collectgarbage()
                return {
                   index = indices:int(),
                   input = input,
-                  depth = depth,
-                  focal = focal,
-                  proj = proj,
-                  mean = mean,
-                  pose = pose,
+                  repos = repos,
                }
             end,
             function(_sample_)

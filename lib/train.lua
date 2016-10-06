@@ -55,36 +55,26 @@ function Trainer:train(epoch, loaders)
   for i, sample in dataloader:run({train=true}) do
     local dataTime = dataTimer:time().real
   
-    -- Get input and depth and focal and convert to CUDA
+    -- Get input and repos and convert to CUDA
     local input = sample.input:cuda()
-    local depth = sample.depth:cuda()
-    local focal = sample.focal:cuda()
-    local proj = sample.proj:cuda()
-    local mean = sample.mean:cuda()
+    local repos = sample.repos:cuda()
     
     -- Forward pass
-    local output = self.model:forward({input, proj})
-    local loss = self.criterion:forward(self.model.output, {depth, focal, mean})
-
-    -- Compute mean per joint position error (MPJPE)
-    local pred_depth = output[1]:float()
-    local pred_focal = output[2]:float()
-    local pose = sample.pose
-    local errSum = 0.0
-    for j = 1, input:size(1) do
-      local pred = geometry.backProjectHMDM(input[j], pred_depth[j], pred_focal[j][1]):float()
-      local err = torch.csub(pred,pose[j]):pow(2):sum(1):sqrt():mean()
-      errSum = errSum + err
-    end
-    local err = errSum / input:size(1)
+    local output = self.model:forward(input)
+    local loss = self.criterion:forward(self.model.output, repos)
 
     -- Backprop
     self.model:zeroGradParameters()
-    self.criterion:backward(self.model.output, {depth, focal, mean})
-    self.model:backward({input, proj}, self.criterion.gradInput)
+    self.criterion:backward(self.model.output, repos)
+    self.model:backward(input, self.criterion.gradInput)
 
     -- Optimization
     optim.rmsprop(feval, self.params, self.optimState)
+
+    -- Compute mean per joint position error (MPJPE)
+    local repos = repos:float()
+    local pred = output:float()
+    local err = torch.csub(repos,pred):pow(2):sum(2):sqrt():mean(3):mean()
 
     -- Print and log
     local time = timer:time().real
@@ -116,25 +106,20 @@ function Trainer:test(epoch, iter, loaders, split)
 
   self.model:evaluate()
   for i, sample in dataloader:run({train=false}) do
-    -- Get input and depth and focal and convert to CUDA
+    -- Get input and repos and convert to CUDA
     local input = sample.input:cuda()
-    local depth = sample.depth:cuda()
-    local focal = sample.focal:cuda()
-    local proj = sample.proj:cuda()
-    local mean = sample.mean:cuda()
+    local repos = sample.repos:cuda()
 
     -- Forward pass
-    local output = self.model:forward({input, proj})
-    local loss = self.criterion:forward(self.model.output, {depth, focal, mean})
+    local output = self.model:forward(input)
+    local loss = self.criterion:forward(self.model.output, repos)
 
     -- Compute mean per joint position error (MPJPE)
     assert(input:size(1) == 1, 'batch size must be 1 with run({train=false})')
-    local pred_depth = output[1]:float()[1]
-    local pred_focal = output[2]:float()[1]
-    local pose = sample.pose
-    local pred = geometry.backProjectHMDM(input[1], pred_depth, pred_focal[1]):float()
-    local err = torch.csub(pred,pose):pow(2):sum(1):sqrt():mean()
-    
+    local repos = repos:float()
+    local pred = output:float()
+    local err = torch.csub(repos,pred):pow(2):sum(2):sqrt():mean()
+
     lossSum = lossSum + loss
     errSum = errSum + err
 
@@ -173,19 +158,16 @@ function Trainer:predict(loaders, split)
     -- Get input and convert to CUDA
     local index = sample.index
     local input = sample.input:cuda()
-    local proj = sample.proj:cuda()
 
     -- Forward pass
-    local output = self.model:forward({input, proj})
+    local output = self.model:forward(input)
 
     -- Copy output
     assert(input:size(1) == 1, 'batch size must be 1 with run({train=false})')
     inds[i] = index[1]
-    local pred_depth = output[1]:float()[1]
-    local pred_focal = output[2]:float()[1]
-    local pose = sample.pose
-    local pred = geometry.backProjectHMDM(input[1], pred_depth, pred_focal[1]):float()
-    
+    local pose = sample.repos
+    local pred = output:float()[1]
+
     if not preds then
       preds = torch.FloatTensor(size, unpack(pred:size():totable()))
     end

@@ -25,13 +25,7 @@ function M.setup(opt, checkpoint)
   end
 
   -- Create criterion
-  local criterion = nn.ParallelCriterion()
-  criterion:add(nn.MSECriterion())
-  criterion:add(nn.MSECriterion())
-  criterion:add(nn.MSECriterion())
-  criterion.weights[1] = 1
-  criterion.weights[2] = opt.weightFocal
-  criterion.weights[3] = opt.weightLenPrior
+  local criterion = nn.MSECriterion()
 
   -- Convert to CUDA
   model:cuda()

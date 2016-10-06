@@ -2,18 +2,9 @@ figure(1);
 
 % choose experiment
 
-% exp_name = 'hg-8-lr-1e-3-bs-64-prior-0';   maxy11 = 1e6;  maxy21 = 1e6;  maxy12 = 1000;  maxy22 = 1000;  clr = 'r';
+% exp_name = 'hg-32-lr-1e-3-bs-64';  maxy11 = 3e4;  maxy21 = 3e4;  maxy12 = 500;  maxy22 = 500;  clr = 'r';
 % epoch_size = 572;
-% exp_name = 'hg-16-lr-1e-3-bs-64-prior-0';  maxy11 = 1e6;  maxy21 = 1e6;  maxy12 = 1000;  maxy22 = 1000;  clr = 'g';
-% epoch_size = 572;
-% exp_name = 'hg-32-lr-1e-3-bs-64-prior-0';  maxy11 = 1e6;  maxy21 = 1e6;  maxy12 = 1000;  maxy22 = 1000;  clr = 'b';
-% epoch_size = 572;
-
-% exp_name = 'hg-8-lr-1e-3-bs-64-prior-10';   maxy11 = 1e6;  maxy21 = 1e6;  maxy12 = 1000;  maxy22 = 1000;  clr = 'r';
-% epoch_size = 572;
-% exp_name = 'hg-16-lr-1e-3-bs-64-prior-10';  maxy11 = 1e6;  maxy21 = 1e6;  maxy12 = 1000;  maxy22 = 1000;  clr = 'g';
-% epoch_size = 572;
-% exp_name = 'hg-32-lr-1e-3-bs-64-prior-10';  maxy11 = 1e6;  maxy21 = 1e6;  maxy12 = 1000;  maxy22 = 1000;  clr = 'b';
+% exp_name = 'hg-64-lr-1e-3-bs-64';  maxy11 = 3e4;  maxy21 = 3e4;  maxy12 = 500;  maxy22 = 500;  clr = 'b';
 % epoch_size = 572;
 
 disp_int = 100;

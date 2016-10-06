@@ -21,16 +21,16 @@ function M.createModel(numPt)
   local inp = nn.Identity()()
 
   -- Initial processing of the image
-  local in1 = cudnn.SpatialConvolution(numPt,32,1,1,1,1,0,0)(inp)
-  local in2 = cudnn.SpatialBatchNormalization(32)(in1)
+  local in1 = cudnn.SpatialConvolution(numPt,64,1,1,1,1,0,0)(inp)
+  local in2 = cudnn.SpatialBatchNormalization(64)(in1)
   local in3 = cudnn.ReLU(true)(in2)
 
-  local cntr = hourglass(4,32,in3)
+  local cntr = hourglass(4,64,in3)
   local view = nn.View(-1):setNumInputDims(3)(cntr)
 
-  local fc = nn.Linear(512,128)(view)
+  local fc = nn.Linear(1024,256)(view)
   local relu = cudnn.ReLU(true)(fc)
-  local repos = nn.Linear(128,3*numPt)(relu)
+  local repos = nn.Linear(256,3*numPt)(relu)
   local repos = nn.View(-1,3,numPt)(repos)
 
   -- Final model
