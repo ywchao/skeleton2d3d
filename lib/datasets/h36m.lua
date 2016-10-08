@@ -18,6 +18,24 @@ function H36MDataset:__init(opt, split)
   self.coord_c = matio.load(self.anno_file, 'coord_c')
   self.coord_p = matio.load(self.anno_file, 'coord_p')
   self.focal = matio.load(self.anno_file, 'focal')
+  -- Convert to Penn Action's format
+  if opt.penn then
+    self.coord_w = self.coord_w:index(2,self:_getPennInd(3))
+    self.coord_c = self.coord_c:index(2,self:_getPennInd(3))
+    self.coord_p = self.coord_p:index(2,self:_getPennInd(2))
+  end
+end
+
+-- Get Penn Action's joint indices
+function H36MDataset:_getPennInd(dim)
+  local joints = {10,15,12,16,13,17,14,2,5,3,6,4,7}
+  local ind = {}
+  for _, v in ipairs(joints) do
+    for i = 1, dim do
+      table.insert(ind, (v-1)*dim+i)
+    end
+  end
+  return torch.LongTensor(ind)
 end
 
 -- Load 3d pose in world coordinates

@@ -25,6 +25,7 @@ function M.parse(arg)
   cmd:option('-weightDecay',            0, 'Weight decay')
   cmd:text(' ------------ Model options ----------------------')
   cmd:option('-netType',          'hg-32', 'Options: ')
+  cmd:option('-penn',               false, 'Use consisitent set of joints from Penn Action')
   cmd:option('-inputRes',              64, 'Input image resolution')
   cmd:text()
 
