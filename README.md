@@ -1,5 +1,12 @@
 # skeleton2d3d
 
+## Dependencies
+
+Make sure the following are installed.
+
+- [Torch7](https://github.com/torch/distro)
+- [matio-ffi](https://github.com/soumith/matio-ffi.torch)
+
 ## Setup
 
 0. Download and extract the Human3.6M dataset from `https://vision.imar.ro/human3.6m`. Only the following files are needed.
@@ -29,3 +36,34 @@
   H36MDataBase.instance;
   ```
   Set the data path to `./external/Human3.6M` and the config file directory to `./H36M_utils`.
+
+#### Training on Human3.6M
+
+0. Generate data.
+  ```Shell
+  cd $S2D3D_ROOT
+  matlab -r "generate_data_h36m"
+  ```
+
+#### Running predictions on Penn Action
+
+0. Download and extract the Penn Action dataset from `https://upenn.box.com/PennAction`.
+
+0. Create symlinks for the downloaded Penn Action dataset. `PENN_ROOT` should contain `frames`, `labels`, and `README`.
+  ```Shell
+  cd $S2D3D_ROOT
+  ln -s $PENN_ROOT ./external/Penn_Action
+  ```
+
+0. Prepare cropped Penn Action.
+  ```Shell
+  cd $S2D3D_ROOT
+  matlab -r "prepare_penn_crop"
+  ```
+
+0. Generate validation set and preprocess data.
+  ```Shell
+  cd $S2D3D_ROOT
+  matlab -r "generate_valid_penn"
+  python ./tools/preprocess.py
+  ```
