@@ -27,6 +27,8 @@ function M.parse(arg)
   cmd:option('-netType',          'hg-32', 'Options: ')
   cmd:option('-penn',               false, 'Use consisitent set of joints from Penn Action')
   cmd:option('-inputRes',              64, 'Input image resolution')
+  cmd:text(' ------------ Prediction options -----------------')
+  cmd:option('-modelPath',         'none', 'Path to the trained model')
   cmd:text()
 
   local opt = cmd:parse(arg or {})

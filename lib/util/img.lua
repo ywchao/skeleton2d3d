@@ -46,7 +46,7 @@ function M.transform(pt, center, scale, rot, res, invert)
     local pt_ = torch.ones(3)
     pt_[1],pt_[2] = pt[1]-1,pt[2]-1
 
-    local t = getTransform(center, scale, rot, res)
+    local t = M.getTransform(center, scale, rot, res)
     if invert then
         t = torch.inverse(t)
     end
@@ -60,8 +60,8 @@ end
 -------------------------------------------------------------------------------
 
 function M.crop(img, center, scale, rot, res)
-    local ul = transform({1,1}, center, scale, 0, res, true)
-    local br = transform({res+1,res+1}, center, scale, 0, res, true)
+    local ul = M.transform({1,1}, center, scale, 0, res, true)
+    local br = M.transform({res+1,res+1}, center, scale, 0, res, true)
 
     local pad = math.floor(torch.norm((ul - br):float())/2 - (br[1]-ul[1])/2)
     if rot ~= 0 then

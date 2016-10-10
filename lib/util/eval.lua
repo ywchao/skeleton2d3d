@@ -43,23 +43,23 @@ end
 function M.heatmapAccuracy(output, label, thr, idxs, outputRes)
     -- Calculate accuracy according to PCK, but uses ground truth heatmap rather than x,y locations
     -- First value to be returned is average accuracy across 'idxs', followed by individual accuracies
-    local preds = getPreds(output)
-    local gt = getPreds(label)
-    local dists = calcDists(preds, gt, torch.ones(preds:size(1))*outputRes/10)
+    local preds = M.getPreds(output)
+    local gt = M.getPreds(label)
+    local dists = M.calcDists(preds, gt, torch.ones(preds:size(1))*outputRes/10)
     local acc = {}
     local avgAcc = 0.0
     local badIdxCount = 0
 
     if not idxs then
         for i = 1,dists:size(1) do
-            acc[i+1] = distAccuracy(dists[i])
+            acc[i+1] = M.distAccuracy(dists[i])
     	    if acc[i+1] >= 0 then avgAcc = avgAcc + acc[i+1]
             else badIdxCount = badIdxCount + 1 end
         end
         acc[1] = avgAcc / (dists:size(1) - badIdxCount)
     else
         for i = 1,#idxs do
-            acc[i+1] = distAccuracy(dists[idxs[i]])
+            acc[i+1] = M.distAccuracy(dists[idxs[i]])
 	    if acc[i+1] >= 0 then avgAcc = avgAcc + acc[i+1]
             else badIdxCount = badIdxCount + 1 end
         end

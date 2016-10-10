@@ -11,6 +11,9 @@ function M.setup(opt, checkpoint)
     assert(paths.filep(modelPath), 'Saved model not found: ' .. modelPath)
     print('=> Resuming model from ' .. modelPath)
     model = torch.load(modelPath)
+  elseif opt.modelPath ~= 'none' then
+    print('=> Loading trained model from' .. opt.modelPath)
+    model = torch.load(opt.modelPath)
   else
     print('=> Creating model from file: lib/models/' .. opt.netType .. '.lua')
     local Model = require('lib/models/' .. opt.netType)

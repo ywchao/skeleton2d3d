@@ -6,6 +6,7 @@ Make sure the following are installed.
 
 - [Torch7](https://github.com/torch/distro)
 - [matio-ffi](https://github.com/soumith/matio-ffi.torch)
+- [torch-hdf5](https://github.com/deepmind/torch-hdf5) (only needed for Penn Action)
 
 ## Setup
 
