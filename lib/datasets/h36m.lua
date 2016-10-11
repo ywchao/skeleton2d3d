@@ -60,7 +60,9 @@ end
 
 -- Normalize 3d pose to zero mean
 function H36MDataset:_normalizePose(pose)
-  return pose - pose:mean(2):expand(pose:size())
+  local cntr = pose:mean(2)
+  local pose = pose - cntr:expand(pose:size())
+  return pose, cntr:view(3)
 end
 
 -- Sample projection
@@ -133,8 +135,9 @@ end
 function H36MDataset:get(idx, train)
   local pose_w = self:_loadPoseWorld(idx)
   local pose_h = self:_normalizePose(pose_w)
-  local pose_c, _, proj, _, _ = self:_sampleProj(pose_h)
-  local repos = self:_normalizePose(pose_c)
+  local pose_c, focal, proj, _, _ = self:_sampleProj(pose_h)
+  local repos, trans = self:_normalizePose(pose_c)
+  local focal = focal[1][1]
 
   local hm = torch.zeros(proj:size(2), self.inputRes, self.inputRes)
   for i = 1, proj:size(2) do
@@ -144,6 +147,9 @@ function H36MDataset:get(idx, train)
   return {
     input = hm,
     repos = repos,
+    trans = trans,
+    focal = focal,
+    proj = proj,
   }
 end
 

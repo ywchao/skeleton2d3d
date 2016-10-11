@@ -87,6 +87,9 @@ function DataLoader:run(kwargs)
                local sz = indices:size(1)
                local input, imageSize
                local repos, reposSize
+               local trans, transSize
+               local focal
+               local proj, projSize
                for i, idx in ipairs(indices:totable()) do
                   local sample = _G.dataset:get(idx, kwargs.train)
                   if not input then
@@ -97,14 +100,31 @@ function DataLoader:run(kwargs)
                      reposSize = sample.repos:size():totable()
                      repos = torch.FloatTensor(sz, unpack(reposSize))
                   end
+                  if not trans then
+                     transSize = sample.trans:size():totable()
+                     trans = torch.FloatTensor(sz, unpack(transSize))
+                  end
+                  if not focal then
+                     focal = torch.FloatTensor(sz, 1)
+                  end
+                  if not proj then
+                     projSize = sample.proj:size():totable()
+                     proj = torch.FloatTensor(sz, unpack(projSize))
+                  end
                   input[i] = sample.input
                   repos[i] = sample.repos
+                  trans[i] = sample.trans
+                  focal[i] = sample.focal
+                  proj[i] = sample.proj
                end
                collectgarbage()
                return {
                   index = indices:int(),
                   input = input,
                   repos = repos,
+                  trans = trans,
+                  focal = focal,
+                  proj = proj,
                }
             end,
             function(_sample_)

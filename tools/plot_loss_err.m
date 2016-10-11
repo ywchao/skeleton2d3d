@@ -2,20 +2,17 @@ figure(1);
 
 % choose experiment
 
-% exp_name = 'hg-32-lr-1e-3-bs-64';  maxy11 = 3e4;  maxy21 = 3e4;  maxy12 = 500;  maxy22 = 500;  clr = 'r';
+% exp_name = 'res-64-t1';  maxy11 = 3e5;  maxy21 = 3e5;  maxy12 = 300;  maxy22 = 300;  clr = 'g';
 % epoch_size = 572;
-% exp_name = 'hg-64-lr-1e-3-bs-64';  maxy11 = 3e4;  maxy21 = 3e4;  maxy12 = 500;  maxy22 = 500;  clr = 'b';
+% exp_name = 'res-64-t2';  maxy11 = 3e5;  maxy21 = 3e5;  maxy12 = 300;  maxy22 = 300;  clr = 'r';
 % epoch_size = 572;
-
-% exp_name = 'hg-32-lr-1e-3-bs-64-penn';  maxy11 = 3e4;  maxy21 = 3e4;  maxy12 = 500;  maxy22 = 500;  clr = 'r';
-% epoch_size = 572;
-% exp_name = 'hg-64-lr-1e-3-bs-64-penn';  maxy11 = 3e4;  maxy21 = 3e4;  maxy12 = 500;  maxy22 = 500;  clr = 'b';
+% exp_name = 'res-64-t3';  maxy11 = 3e5;  maxy21 = 3e5;  maxy12 = 300;  maxy22 = 300;  clr = 'b';
 % epoch_size = 572;
 
 disp_int = 100;
 
 % set parameters
-max_epoch = 30;
+max_epoch = 75;
 
 format = '%s %s %s %s %s %s';
 

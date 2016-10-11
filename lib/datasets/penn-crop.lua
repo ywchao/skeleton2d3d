@@ -70,6 +70,9 @@ function PennCropDataset:get(idx)
   return {
     input = target,
     repos = torch.zeros(1),
+    trans = torch.zeros(1),
+    focal = torch.zeros(1),
+    proj = torch.zeros(1),
   }
 end
 

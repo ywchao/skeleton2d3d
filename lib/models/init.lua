@@ -24,11 +24,30 @@ function M.setup(opt, checkpoint)
     local numPt = dataset.coord_w:size(2) / 3
 
     -- Create model
-    model = Model.createModel(numPt)
+    model = Model.createModel(numPt, opt.inputRes)
   end
 
   -- Create criterion
-  local criterion = nn.MSECriterion()
+  local criterion
+  if #model.outnode.children == 1 then
+    criterion = nn.MSECriterion()
+  else
+    criterion = nn.ParallelCriterion()
+    for i = 1, #model.outnode.children do
+      criterion:add(nn.MSECriterion())
+    end
+    if #model.outnode.children == 3 then
+      criterion.weights[1] = 1
+      criterion.weights[2] = opt.weightTrans
+      criterion.weights[3] = opt.weightFocal
+    end
+    if #model.outnode.children == 4 then
+      criterion.weights[1] = 1
+      criterion.weights[2] = opt.weightTrans
+      criterion.weights[3] = opt.weightFocal
+      criterion.weights[4] = opt.weightProj
+    end
+  end
 
   -- Convert to CUDA
   model:cuda()

@@ -17,7 +17,7 @@ local function hourglass(n, f, inp)
   return low3
 end
 
-function M.createModel(numPt)
+function M.createModel(numPt, inputRes)
   local inp = nn.Identity()()
 
   -- Initial processing of the image
@@ -28,13 +28,31 @@ function M.createModel(numPt)
   local cntr = hourglass(4,64,in3)
   local view = nn.View(-1):setNumInputDims(3)(cntr)
 
-  local fc = nn.Linear(1024,256)(view)
-  local relu = cudnn.ReLU(true)(fc)
-  local repos = nn.Linear(256,3*numPt)(relu)
+  local dfc = (inputRes/2^4)^2*64
+
+  -- Relative joint position
+  local fc1 = nn.Linear(dfc,dfc/4)(view)
+  local relu1 = cudnn.ReLU(true)(fc1)
+  local repos = nn.Linear(dfc/4,3*numPt)(relu1)
   local repos = nn.View(-1,3,numPt)(repos)
 
+  -- Translation of skeleton center
+  local fc2 = nn.Linear(dfc,dfc/4)(view)
+  local relu2 = cudnn.ReLU(true)(fc2)
+  local trans = nn.Linear(dfc/4,3)(relu2)
+  local txy = nn.Narrow(2,1,2)(trans)
+  local td = nn.Narrow(2,3,1)(trans)
+  local td = nn.AddConstant(2500)(td)
+  local trans = nn.JoinTable(2)({txy,td})
+  
+  -- Focal length
+  local fc3 = nn.Linear(dfc,dfc/4)(view)
+  local relu3 = cudnn.ReLU(true)(fc3)
+  local focal = nn.Linear(dfc/4,1)(relu3)
+  local focal = nn.AddConstant(73.6)(focal)
+
   -- Final model
-  local model = nn.gModule({inp}, {repos})
+  local model = nn.gModule({inp}, {repos, trans, focal})
 
   -- Zero the gradients; not sure if this is necessary
   model:zeroGradParameters()

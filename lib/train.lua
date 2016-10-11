@@ -55,25 +55,35 @@ function Trainer:train(epoch, loaders)
   for i, sample in dataloader:run({train=true}) do
     local dataTime = dataTimer:time().real
   
-    -- Get input and repos and convert to CUDA
+    -- Get input and repos and trans and focal and proj and convert to CUDA
     local input = sample.input:cuda()
     local repos = sample.repos:cuda()
+    local trans = sample.trans:cuda()
+    local focal = sample.focal:cuda()
+    local proj = sample.proj:cuda()
     
+    -- Get target
+    local target
+    if #self.model.outnode.children == 1 then target = repos end
+    if #self.model.outnode.children == 3 then target = {repos, trans, focal} end
+    if #self.model.outnode.children == 4 then target = {repos, trans, focal, proj} end
+
     -- Forward pass
     local output = self.model:forward(input)
-    local loss = self.criterion:forward(self.model.output, repos)
+    local loss = self.criterion:forward(self.model.output, target)
 
     -- Backprop
     self.model:zeroGradParameters()
-    self.criterion:backward(self.model.output, repos)
+    self.criterion:backward(self.model.output, target)
     self.model:backward(input, self.criterion.gradInput)
 
     -- Optimization
     optim.rmsprop(feval, self.params, self.optimState)
 
     -- Compute mean per joint position error (MPJPE)
+    if #self.model.outnode.children == 1 then output = {output} end
     local repos = repos:float()
-    local pred = output:float()
+    local pred = output[1]:float()
     local err = torch.csub(repos,pred):pow(2):sum(2):sqrt():mean(3):mean()
 
     -- Print and log
@@ -106,18 +116,28 @@ function Trainer:test(epoch, iter, loaders, split)
 
   self.model:evaluate()
   for i, sample in dataloader:run({train=false}) do
-    -- Get input and repos and convert to CUDA
+    -- Get input and repos and trans and focal and proj and convert to CUDA
     local input = sample.input:cuda()
     local repos = sample.repos:cuda()
+    local trans = sample.trans:cuda()
+    local focal = sample.focal:cuda()
+    local proj = sample.proj:cuda()
+
+    -- Get target
+    local target
+    if #self.model.outnode.children == 1 then target = repos end
+    if #self.model.outnode.children == 3 then target = {repos, trans, focal} end
+    if #self.model.outnode.children == 4 then target = {repos, trans, focal, proj} end
 
     -- Forward pass
     local output = self.model:forward(input)
-    local loss = self.criterion:forward(self.model.output, repos)
+    local loss = self.criterion:forward(self.model.output, target)
 
     -- Compute mean per joint position error (MPJPE)
     assert(input:size(1) == 1, 'batch size must be 1 with run({train=false})')
+    if #self.model.outnode.children == 1 then output = {output} end
     local repos = repos:float()
-    local pred = output:float()
+    local pred = output[1]:float()
     local err = torch.csub(repos,pred):pow(2):sum(2):sqrt():mean()
 
     lossSum = lossSum + loss
@@ -148,7 +168,7 @@ function Trainer:predict(loaders, split)
   local dataloader = loaders[split]
   local size = dataloader:sizeDataset()
   local inds = torch.IntTensor(size)
-  local preds, poses
+  local poses, repos, trans, focal, proj
 
   print("=> Generating predictions ...")
   xlua.progress(0, size)
@@ -165,17 +185,37 @@ function Trainer:predict(loaders, split)
     -- Copy output
     assert(input:size(1) == 1, 'batch size must be 1 with run({train=false})')
     inds[i] = index[1]
-    local pose = sample.repos
-    local pred = output:float()[1]
+    if #self.model.outnode.children == 1 then output = {output} end
 
-    if not preds then
-      preds = torch.FloatTensor(size, unpack(pred:size():totable()))
-    end
     if not poses then
-      poses = torch.FloatTensor(size, unpack(pose[1]:size():totable()))
+      poses = torch.FloatTensor(size, unpack(sample.repos[1]:size():totable()))
     end
-    preds[i]:copy(pred)
-    poses[i]:copy(pose[1])
+    if not repos then
+      repos = torch.FloatTensor(size, unpack(output[1][1]:size():totable()))
+    end
+    if sample.trans[1]:numel() == 3 then
+      poses[i]:copy(sample.repos[1] + sample.trans[1]:view(3,1):expand(sample.repos[1]:size()))
+    else
+      poses[i]:copy(sample.repos[1])
+    end
+    repos[i]:copy(output[1]:float()[1])
+
+    if #output > 1 then
+      if not trans then
+        trans = torch.FloatTensor(size, unpack(output[2][1]:size():totable()))
+      end
+      if not focal then
+        focal = torch.FloatTensor(size, unpack(output[3][1]:size():totable()))
+      end
+      trans[i]:copy(output[2]:float()[1])
+      focal[i]:copy(output[3]:float()[1])
+    end
+    if #output > 3 then
+      if not proj then
+        proj = torch.FloatTensor(size, unpack(output[4][1]:size():totable()))
+      end
+      proj[i]:copy(output[4]:float()[1])
+    end
 
     xlua.progress(i, size)
   end
@@ -183,11 +223,15 @@ function Trainer:predict(loaders, split)
 
   -- Sort preds by inds
   local inds, i = torch.sort(inds)
-  preds = preds:index(1, i)
   poses = poses:index(1, i)
+  repos = repos:index(1, i)
+  if trans then trans = trans:index(1, i) end
+  if focal then focal = focal:index(1, i) end
+  if proj then proj = proj:index(1, i) end
   
   -- Save final predictions
-  matio.save(self.opt.save .. '/preds_' .. split .. '.mat', {preds = preds, poses = poses})
+  matio.save(self.opt.save .. '/preds_' .. split .. '.mat',
+      {poses = poses, repos = repos, trans = trans, focal = focal, proj = proj})
 end
 
 return M.Trainer
