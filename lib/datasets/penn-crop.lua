@@ -39,6 +39,9 @@ function PennCropDataset:_getCenterScale(im)
   local x = (w+1)/2
   local y = (h+1)/2
   local scale = math.max(w,h)/200
+  -- Small adjustment so cropping is less likely to take feet out
+  y = y + scale * 15
+  scale = scale * 1.25
   return {torch.Tensor({x,y}), scale}
 end
 

@@ -36,12 +36,11 @@ ts_h5 = op_dir + 'test.h5'
 for idx in xrange(penn.nimages):
   # Part annotations and visibility
   coords,vis = penn.partinfo(idx)
-  # *** DO NOT SKIP FRAME ***
   # skip if no visible joints
   # 1. all joints
   # if np.all(vis == False): continue
   # 2. difficult joints, i.e. idx 3 to 12
-  # if np.all(vis[3:] == False): continue
+  if np.all(vis[3:] == False): continue
 
   # Check train/valid/test association
   if penn.istrain(idx):

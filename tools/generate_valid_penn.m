@@ -33,18 +33,15 @@ for i = 1:num_seq
     assert(anno.train == 1 || anno.train == -1);
     train(i) = anno.train;
     
-    % *** FOR NOW, DO NOT TAKE AWAY FRAMES WITH NO VISIBLE JOINTS, SINCE WE
-    % ARE TRAINING ON SEQUENCES ***
     % do not count frames with no visible joints
     % remove these frames from train/valid/test data
     % 1. all joints
     % num_fr(i) = num_fr(i) - sum(all(anno.visibility == 0,2));
     % 2. difficult joints, i.e. idx 4 to 13
-    % num_fr(i) = num_fr(i) - sum(all(anno.visibility(:,4:end) == 0,2));
+    num_fr(i) = num_fr(i) - sum(all(anno.visibility(:,4:end) == 0,2));
 end
 fprintf('\n');
 
-% *** STILL REMOVE SEQUENCES WITH NO VISIBLE JOINTS AT ALL ***
 % remove seq with no visible joints; set train to -2
 % this is reduncdant as num_fr has been set to 0 already
 rm_id = find(num_fr == 0);

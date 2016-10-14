@@ -56,7 +56,8 @@ if ~exist(data_file,'file')
             end
         end
     end
-    save(data_file,'ind2sub','coord_w','coord_c','coord_p','focal');
+    % need version -V6 for ilcomp
+    save(data_file,'ind2sub','coord_w','coord_c','coord_p','focal','-V6');
     fprintf('done.\n');
 end
 
@@ -109,6 +110,7 @@ if ~exist(data_file,'file')
             end
         end
     end
-    save(data_file,'ind2sub','coord_w','coord_c','coord_p','focal');
+    % need version -V6 for ilcomp
+    save(data_file,'ind2sub','coord_w','coord_c','coord_p','focal','-V6');
     fprintf('done.\n');
 end
