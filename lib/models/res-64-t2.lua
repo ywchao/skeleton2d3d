@@ -33,8 +33,8 @@ function M.createModel(numPt, inputRes)
   -- Relative joint position
   local fc1 = nn.Linear(dfc,dfc/4)(view)
   local relu1 = cudnn.ReLU(true)(fc1)
-  local repos = nn.Linear(dfc/4,3*numPt)(relu1)
-  local repos = nn.View(-1,3,numPt)(repos)
+  local repos = nn.Linear(dfc/4,numPt*3)(relu1)
+  local repos = nn.View(-1,numPt,3)(repos)
 
   -- Translation of skeleton center
   local fc2 = nn.Linear(dfc,dfc/4)(view)

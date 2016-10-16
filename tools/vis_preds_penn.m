@@ -18,13 +18,13 @@ part = permute(part,[3 2 1]);
 % load predictions
 preds = load(['./exp/penn-crop/' expID '/preds_' split '.mat']);
 joints = [10,15,12,16,13,17,14,2,5,3,6,4,7];
-preds_ = zeros(size(preds.repos,1),3,17);
-preds_(:,:,joints) = preds.repos;
-preds_(:,:,1) = (preds.repos(:,:,8) + preds.repos(:,:,9))/2;
-preds_(:,:,8) = (preds.repos(:,:,2) + preds.repos(:,:,3) + preds.repos(:,:,8) + preds.repos(:,:,9))/4;
-preds_(:,:,9) = (preds.repos(:,:,1) + preds.repos(:,:,2) + preds.repos(:,:,3))/3;
-preds_(:,:,11) = preds.repos(:,:,1);
-preds = preds_;
+preds_ = zeros(size(preds.repos,1),17,3);
+preds_(:,joints,:) = preds.repos;
+preds_(:,1,:) = (preds.repos(:,8,:) + preds.repos(:,9,:))/2;
+preds_(:,8,:) = (preds.repos(:,2,:) + preds.repos(:,3,:) + preds.repos(:,8,:) + preds.repos(:,9,:))/4;
+preds_(:,9,:) = (preds.repos(:,1,:) + preds.repos(:,2,:) + preds.repos(:,3,:))/3;
+preds_(:,11,:) = preds.repos(:,1,:);
+preds = permute(preds_,[1,3,2]);
 assert(size(preds,1) == size(ind2sub,1));
 
 % load posSkel

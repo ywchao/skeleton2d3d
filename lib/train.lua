@@ -23,6 +23,7 @@ function Trainer:__init(model, criterion, opt, optimState)
   }
   self:initLogger(self.logger['train'])
   self:initLogger(self.logger['val'])
+  self.nOutput = #self.model.outnode.children
 end
 
 function Trainer:initLogger(logger)
@@ -64,9 +65,9 @@ function Trainer:train(epoch, loaders)
     
     -- Get target
     local target
-    if #self.model.outnode.children == 1 then target = repos end
-    if #self.model.outnode.children == 3 then target = {repos, trans, focal} end
-    if #self.model.outnode.children == 4 then target = {repos, trans, focal, proj} end
+    if self.nOutput == 1 then target = repos end
+    if self.nOutput == 3 then target = {repos, trans, focal} end
+    if self.nOutput == 4 then target = {repos, trans, focal, proj} end
 
     -- Forward pass
     local output = self.model:forward(input)
@@ -81,10 +82,10 @@ function Trainer:train(epoch, loaders)
     optim.rmsprop(feval, self.params, self.optimState)
 
     -- Compute mean per joint position error (MPJPE)
-    if #self.model.outnode.children == 1 then output = {output} end
+    if self.nOutput == 1 then output = {output} end
     local repos = repos:float()
     local pred = output[1]:float()
-    local err = torch.csub(repos,pred):pow(2):sum(2):sqrt():mean(3):mean()
+    local err = torch.csub(repos,pred):pow(2):sum(3):sqrt():mean(2):mean()
 
     -- Print and log
     local time = timer:time().real
@@ -93,8 +94,8 @@ function Trainer:train(epoch, loaders)
     entry[2] = string.format("%d" % i)
     entry[3] = string.format("%.3f" % time)
     entry[4] = string.format("%.3f" % dataTime)
-    entry[5] = string.format("%7.f" % loss)
-    entry[6] = string.format("%.2f" % err)
+    entry[5] = string.format("%7.0f" % loss)
+    entry[6] = string.format("%7.2f" % err)
     self.logger['train']:add(entry)
   
     xlua.progress(i, size)
@@ -125,9 +126,9 @@ function Trainer:test(epoch, iter, loaders, split)
 
     -- Get target
     local target
-    if #self.model.outnode.children == 1 then target = repos end
-    if #self.model.outnode.children == 3 then target = {repos, trans, focal} end
-    if #self.model.outnode.children == 4 then target = {repos, trans, focal, proj} end
+    if self.nOutput == 1 then target = repos end
+    if self.nOutput == 3 then target = {repos, trans, focal} end
+    if self.nOutput == 4 then target = {repos, trans, focal, proj} end
 
     -- Forward pass
     local output = self.model:forward(input)
@@ -135,10 +136,10 @@ function Trainer:test(epoch, iter, loaders, split)
 
     -- Compute mean per joint position error (MPJPE)
     assert(input:size(1) == 1, 'batch size must be 1 with run({train=false})')
-    if #self.model.outnode.children == 1 then output = {output} end
+    if self.nOutput == 1 then output = {output} end
     local repos = repos:float()
     local pred = output[1]:float()
-    local err = torch.csub(repos,pred):pow(2):sum(2):sqrt():mean()
+    local err = torch.csub(repos,pred):pow(2):sum(3):sqrt():mean()
 
     lossSum = lossSum + loss
     errSum = errSum + err
@@ -157,8 +158,8 @@ function Trainer:test(epoch, iter, loaders, split)
   entry[2] = string.format("%d" % iter)
   entry[3] = string.format("%.3f" % testTime)
   entry[4] = string.format("%.3f" % 0/0)
-  entry[5] = string.format("%7.f" % loss)
-  entry[6] = string.format("%.2f" % err)
+  entry[5] = string.format("%7.0f" % loss)
+  entry[6] = string.format("%7.2f" % err)
   self.logger['val']:add(entry)
 
   return err
@@ -185,7 +186,7 @@ function Trainer:predict(loaders, split)
     -- Copy output
     assert(input:size(1) == 1, 'batch size must be 1 with run({train=false})')
     inds[i] = index[1]
-    if #self.model.outnode.children == 1 then output = {output} end
+    if self.nOutput == 1 then output = {output} end
 
     if not poses then
       poses = torch.FloatTensor(size, unpack(sample.repos[1]:size():totable()))
@@ -200,7 +201,7 @@ function Trainer:predict(loaders, split)
     end
     repos[i]:copy(output[1]:float()[1])
 
-    if #output > 1 then
+    if self.nOutput > 1 then
       if not trans then
         trans = torch.FloatTensor(size, unpack(output[2][1]:size():totable()))
       end
@@ -210,7 +211,7 @@ function Trainer:predict(loaders, split)
       trans[i]:copy(output[2]:float()[1])
       focal[i]:copy(output[3]:float()[1])
     end
-    if #output > 3 then
+    if self.nOutput > 3 then
       if not proj then
         proj = torch.FloatTensor(size, unpack(output[4][1]:size():totable()))
       end

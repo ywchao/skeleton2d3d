@@ -21,7 +21,7 @@ function M.setup(opt, checkpoint)
     -- Get output dim
     local Dataset = require('lib/datasets/' .. opt.dataset)
     local dataset = Dataset(opt, 'train')
-    local numPt = dataset.coord_w:size(2) / 3
+    local numPt = dataset.numPt
 
     -- Create model
     model = Model.createModel(numPt, opt.inputRes)
@@ -29,19 +29,20 @@ function M.setup(opt, checkpoint)
 
   -- Create criterion
   local criterion
-  if #model.outnode.children == 1 then
+  local nOutput = #model.outnode.children
+  if nOutput == 1 then
     criterion = nn.MSECriterion()
   else
     criterion = nn.ParallelCriterion()
-    for i = 1, #model.outnode.children do
+    for i = 1, nOutput do
       criterion:add(nn.MSECriterion())
     end
-    if #model.outnode.children == 3 then
+    if nOutput == 3 then
       criterion.weights[1] = 1
       criterion.weights[2] = opt.weightTrans
       criterion.weights[3] = opt.weightFocal
     end
-    if #model.outnode.children == 4 then
+    if nOutput == 4 then
       criterion.weights[1] = 1
       criterion.weights[2] = opt.weightTrans
       criterion.weights[3] = opt.weightFocal

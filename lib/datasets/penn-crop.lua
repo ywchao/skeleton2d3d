@@ -7,7 +7,6 @@ local M = {}
 local PennCropDataset = torch.class('skeleton2d3d.PennCropDataset', M)
 
 function PennCropDataset:__init(opt, split)
-  -- self.opt = opt
   self.split = split
   self.dir = paths.concat(opt.data, 'frames')
   assert(paths.dirp(self.dir), 'directory does not exist: ' .. self.dir)
@@ -19,6 +18,8 @@ function PennCropDataset:__init(opt, split)
   -- Get input and output resolution
   self.inputRes = opt.inputRes
   self.outputRes = opt.inputRes
+  -- Get number of joints
+  self.numPt = self.visible:size(2)
 end
 
 -- Get image path

@@ -33,8 +33,8 @@ function M.createModel(numPt, inputRes)
   -- Relative joint position
   local fc1 = nn.Linear(dfc,dfc/4)(view)
   local relu1 = cudnn.ReLU(true)(fc1)
-  local repos = nn.Linear(dfc/4,3*numPt)(relu1)
-  local repos = nn.View(-1,3,numPt)(repos)
+  local repos = nn.Linear(dfc/4,numPt*3)(relu1)
+  local repos = nn.View(-1,numPt,3)(repos)
 
   -- Translation of skeleton center
   local fc2 = nn.Linear(dfc,dfc/4)(view)
@@ -52,17 +52,17 @@ function M.createModel(numPt, inputRes)
   local focal = nn.AddConstant(73.6)(focal)
 
   -- 3D points in camera coordinates
-  local rept = nn.Replicate(numPt,3)(trans)
+  local rept = nn.Replicate(numPt,2)(trans)
   local p3d = nn.CAddTable()({repos,rept})
 
   -- Projection
-  local xy = nn.Narrow(2,1,2)(p3d)
-  local d = nn.Select(2,3)(p3d)
-  local repd = nn.Replicate(2,2)(d)
+  local xy = nn.Narrow(3,1,2)(p3d)
+  local d = nn.Select(3,3)(p3d)
+  local repd = nn.Replicate(2,3)(d)
   local proj = nn.CDivTable()({xy,repd})
   local f = nn.Select(2,1)(focal)
-  local repf = nn.Replicate(2,2)(f)
-  local repf = nn.Replicate(numPt,3)(repf)
+  local repf = nn.Replicate(numPt,2)(f)
+  local repf = nn.Replicate(2,3)(repf)
   local proj = nn.CMulTable()({proj,repf})
   local proj = nn.AddConstant(inputRes/2)(proj)
 

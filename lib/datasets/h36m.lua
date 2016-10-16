@@ -24,6 +24,8 @@ function H36MDataset:__init(opt, split)
     self.coord_c = self.coord_c:index(2,self:_getPennInd(3))
     self.coord_p = self.coord_p:index(2,self:_getPennInd(2))
   end
+  -- Get number of joints
+  self.numPt = self.coord_w:size(2) / 3
 end
 
 -- Get Penn Action's joint indices
@@ -40,17 +42,17 @@ end
 
 -- Load 3d pose in world coordinates
 function H36MDataset:_loadPoseWorld(idx)
-  return self.coord_w[idx]:contiguous():view(-1,3):t():double()
+  return self.coord_w[idx]:contiguous():view(-1,3):double()
 end
 
 -- Load 3d pose in camera coordinates
 function H36MDataset:_loadPoseCamera(idx)
-  return self.coord_c[idx]:contiguous():view(-1,3):t():double()
+  return self.coord_c[idx]:contiguous():view(-1,3):double()
 end
 
 -- Load 2d pose projection
 function H36MDataset:_loadPoseProject(idx)
-  return self.coord_p[idx]:contiguous():view(-1,2):t():double()
+  return self.coord_p[idx]:contiguous():view(-1,2):double()
 end
 
 -- Load focal length
@@ -60,7 +62,7 @@ end
 
 -- Normalize 3d pose to zero mean
 function H36MDataset:_normalizePose(pose)
-  local cntr = pose:mean(2)
+  local cntr = pose:mean(1)
   local pose = pose - cntr:expand(pose:size())
   return pose, cntr:view(3)
 end
@@ -94,7 +96,7 @@ function H36MDataset:_sampleProj(pose_w)
               geometry.angle2dcm(math.pi/2,0,-math.pi/2,'zyx') *
               geometry.angle2dcm(az,-el,0,'zyx')
     -- Get projection, depth, and pose in camera coordinates
-    proj, depth, pose_c = geometry.camProject(pose_w:t(), R, T, f, c)
+    proj, depth, pose_c = geometry.camProject(pose_w, R, T, f, c)
     -- skip if any point is behind the image plane
     if depth:lt(f[1][1]):sum() > 0 then
       goto continue
@@ -122,8 +124,6 @@ function H36MDataset:_sampleProj(pose_w)
     -- Contiunue
     ::continue::
   end
-  proj = proj:t()
-  depth = depth:t()
   return pose_c, cam.f, proj, depth, trial
 end
 
@@ -139,9 +139,9 @@ function H36MDataset:get(idx, train)
   local repos, trans = self:_normalizePose(pose_c)
   local focal = focal[1][1]
 
-  local hm = torch.zeros(proj:size(2), self.inputRes, self.inputRes)
-  for i = 1, proj:size(2) do
-    img.drawGaussian(hm[i], proj[{{},i}], 2)
+  local hm = torch.zeros(proj:size(1), self.inputRes, self.inputRes)
+  for i = 1, proj:size(1) do
+    img.drawGaussian(hm[i], proj[i], 2)
   end
 
   return {

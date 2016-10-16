@@ -38,11 +38,13 @@ function M.camProject(P, R, T, f, c)
 -- output
 --	p:	N x 2
 --	D:	N x 1
+--  X:  N x 3
   local N = P:size(1)
   local X = R * torch.csub(P:t(),T:expand(N,3):t())
   local p = torch.cdiv(X[{{1,2},{}}], X[{{3},{}}]:expand(2,N))
   local p = torch.cmul(f:expand(N,2), p:t()) + c:expand(N,2)
   local D = X[{{3}}]:t()
+  local X = X:t()
   return p, D, X
 end
 
