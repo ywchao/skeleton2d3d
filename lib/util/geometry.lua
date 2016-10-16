@@ -65,4 +65,29 @@ function M.backProjectHMDM(hm, d, f)
   return P
 end
 
+function M.shuffleLR(x, dataset)
+  assert(x:dim() == 3 or x:dim() == 2, 'dim must be 3 or 2')
+  local dim = x:dim() - 1
+  local matchedParts
+  if dataset == 'penn-crop' then
+    matchedParts = {{ 2, 3}, { 4, 5}, { 6, 7}, { 8, 9}, {10,11}, {12,13}}
+  end
+  local y = x:clone()
+  for i = 1, #matchedParts do
+    local idx1, idx2 = unpack(matchedParts[i])
+    y:narrow(dim, idx1, 1):copy(x:narrow(dim, idx2, 1))
+    y:narrow(dim, idx2, 1):copy(x:narrow(dim, idx1, 1))
+  end
+  return y
+end
+
+function M.flip(x)
+  local dim = x:dim()
+  assert(dim == 3 or dim == 2, 'dim must be 3 or 2')
+  assert(x:size(dim) == 3 or x:size(dim) == 2, 'last dim must be 2D or 3D')
+  local y = x:clone()
+  y:select(dim,1):mul(-1)
+  return y
+end
+
 return M

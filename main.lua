@@ -32,7 +32,7 @@ for epoch = startEpoch, opt.nEpochs do
 
   -- Run model on validation set
   local iter = loaders['train']:size()
-  local testErr = trainer:test(epoch, iter, loaders, 'val')
+  local testErr, testAcc = trainer:test(epoch, iter, loaders, 'val')
 
   local bestModel = false
   if testErr < bestErr then

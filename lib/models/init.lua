@@ -25,6 +25,22 @@ function M.setup(opt, checkpoint)
 
     -- Create model
     model = Model.createModel(numPt, opt.inputRes)
+
+    -- Load trained models
+    if opt.hg then
+      if opt.hgModel ~= 'none' then
+        assert(paths.filep(opt.hgModel),
+            'initial hourglass model not found: ' .. opt.hgModel)
+        local model_hg = torch.load(opt.hgModel)
+        Model.loadHourglass(model, model_hg)
+      end
+      if opt.s3Model ~= 'none' then
+        assert(paths.filep(opt.s3Model),
+            'initial skel3dnet model not found: ' .. opt.s3Model)
+        local model_s3 = torch.load(opt.s3Model)
+        Model.loadSkel3DNet(model, model_s3)
+      end
+    end
   end
 
   -- Create criterion
@@ -37,6 +53,15 @@ function M.setup(opt, checkpoint)
     for i = 1, nOutput do
       criterion:add(nn.MSECriterion())
     end
+  end
+  if opt.hg then
+    assert(nOutput == 1 or nOutput == 2)
+    if nOutput == 2 then
+      criterion.weights[1] = 1
+      criterion.weights[2] = opt.weightLLPrior
+    end
+  else
+    assert(nOutput == 1 or nOutput == 3 or nOutput == 4)
     if nOutput == 3 then
       criterion.weights[1] = 1
       criterion.weights[2] = opt.weightTrans

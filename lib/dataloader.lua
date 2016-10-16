@@ -90,11 +90,17 @@ function DataLoader:run(kwargs)
                local trans, transSize
                local focal
                local proj, projSize
+               local mean, meanSize
                for i, idx in ipairs(indices:totable()) do
                   local sample = _G.dataset:get(idx, kwargs.train)
                   if not input then
                      imageSize = sample.input:size():totable()
-                     input = torch.FloatTensor(sz, unpack(imageSize))
+                     if _G.dataset.hg and not kwargs.train then
+                        table.remove(imageSize, 1)
+                        input = torch.FloatTensor(sz, 2, unpack(imageSize))
+                     else
+                        input = torch.FloatTensor(sz, unpack(imageSize))
+                     end
                   end
                   if not repos then
                      reposSize = sample.repos:size():totable()
@@ -111,11 +117,19 @@ function DataLoader:run(kwargs)
                      projSize = sample.proj:size():totable()
                      proj = torch.FloatTensor(sz, unpack(projSize))
                   end
+                  if not mean then
+                     meanSize = sample.mean:size():totable()
+                     mean = torch.FloatTensor(sz, unpack(meanSize))
+                  end
                   input[i] = sample.input
                   repos[i] = sample.repos
                   trans[i] = sample.trans
                   focal[i] = sample.focal
                   proj[i] = sample.proj
+                  mean[i] = sample.mean
+               end
+               if _G.dataset.hg and not kwargs.train then
+                  input = input:view(2, unpack(imageSize))
                end
                collectgarbage()
                return {
@@ -125,6 +139,7 @@ function DataLoader:run(kwargs)
                   trans = trans,
                   focal = focal,
                   proj = proj,
+                  mean = mean,
                }
             end,
             function(_sample_)

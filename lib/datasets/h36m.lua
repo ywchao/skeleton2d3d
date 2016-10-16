@@ -26,6 +26,10 @@ function H36MDataset:__init(opt, split)
   end
   -- Get number of joints
   self.numPt = self.coord_w:size(2) / 3
+  -- Check if the model contains hourglass for pose estimation
+  self.hg = false
+  -- -- Get mean limb length
+  -- self.mean = self:_getMeanLimbLen(opt.penn)
 end
 
 -- Get Penn Action's joint indices
@@ -39,6 +43,27 @@ function H36MDataset:_getPennInd(dim)
   end
   return torch.LongTensor(ind)
 end
+
+-- -- Get mean limb length
+-- function H36MDataset:_getMeanLimbLen(penn)
+--   local conn
+--   if penn then
+--     conn = torch.LongTensor{
+--         { 2, 1}, { 3, 1}, { 4, 2}, { 5, 3}, { 6, 4}, { 7, 5},
+--         { 8, 2}, { 9, 3}, {10, 8}, {11, 9}, {12,10}, {13,11}
+--     }
+--   else
+--     conn = torch.LongTensor{
+--         { 1, 2}, { 2, 3}, { 3, 4}, { 1, 5}, { 5, 6}, { 6, 7},
+--         { 1, 8}, { 8, 9}, { 9,10}, {10,11},
+--         { 9,12}, {12,13}, {13,14}, { 9,15}, {15,16}, {16,17}
+--     }
+--   end
+--   local coord_w = self.coord_w:contiguous():view(-1,self.coord_w:size(2)/3,3)
+--   local d1 = coord_w:index(2,conn:select(2,1))
+--   local d2 = coord_w:index(2,conn:select(2,2))
+--   return torch.csub(d1,d2):pow(2):sum(3):sqrt():mean(1):squeeze()
+-- end
 
 -- Load 3d pose in world coordinates
 function H36MDataset:_loadPoseWorld(idx)
@@ -144,12 +169,26 @@ function H36MDataset:get(idx, train)
     img.drawGaussian(hm[i], proj[i], 2)
   end
 
+  -- Set input
+  if self.hg then
+    -- TODO:
+  else
+    input = hm
+  end
+
+  -- Add flipped input for prediction
+  if self.hg and not train then
+    -- TODO:
+  end
+
   return {
-    input = hm,
+    input = input,
     repos = repos,
     trans = trans,
     focal = focal,
     proj = proj,
+    mean = torch.zeros(1),
+    -- mean = self.mean,
   }
 end
 
