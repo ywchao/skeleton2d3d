@@ -162,7 +162,7 @@ function H36MDataset:get(idx, train)
   local pose_h = self:_normalizePose(pose_w)
   local pose_c, focal, proj, _, _ = self:_sampleProj(pose_h)
   local repos, trans = self:_normalizePose(pose_c)
-  local focal = focal[1][1]
+  local focal = focal[{{},1}]
 
   local hm = torch.zeros(proj:size(1), self.inputRes, self.inputRes)
   for i = 1, proj:size(1) do

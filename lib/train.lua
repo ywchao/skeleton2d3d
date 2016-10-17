@@ -218,17 +218,26 @@ function Trainer:test(epoch, iter, loaders, split)
         err = torch.csub(proj,pred):pow(2):sum(3):sqrt():mean()
       end
       acc = self:_computeAccuracy(proj,pred)
-      -- Compute heatmap error/accuracy
+      -- -- Compute heatmap error/accuracy
       -- local hmapOut = self.model.modules[self.model.id_hmap].output:float()
       -- local hmap1 = hmapOut[{{1}}]
       -- local hmap2 = img.flip(img.shuffleLR(hmapOut[{{2}}],self.jointType))
       -- local hmap = torch.add(hmap1,hmap2):div(2)
       -- pred = eval.getPreds(hmap)
+      -- err = self:_computeError(proj,pred)
       -- acc = self:_computeAccuracy(proj,pred)
     else
-      repos = repos:float()
-      err = torch.csub(repos,pred):pow(2):sum(3):sqrt():mean()
-      acc = 0/0
+      if self.opt.dataset == 'penn-crop' then
+        assert(self.nOutput == 4)
+        proj = proj:float()
+        pred = output[4]:float()
+        err = self:_computeError(proj,pred)
+        acc = self:_computeAccuracy(proj,pred)
+      else
+        repos = repos:float()
+        err = torch.csub(repos,pred):pow(2):sum(3):sqrt():mean()
+        acc = 0/0
+      end
     end
 
     lossSum = lossSum + loss
@@ -345,11 +354,7 @@ function Trainer:predict(loaders, split)
       if not repos then
         repos = torch.FloatTensor(size, unpack(output[1][1]:size():totable()))
       end
-      if sample.trans[1]:numel() == 3 then
-        poses[i]:copy(sample.repos[1] + sample.trans[1]:view(3,1):expand(sample.repos[1]:size()))
-      else
-        poses[i]:copy(sample.repos[1])
-      end
+      poses[i]:copy(sample.repos[1] + sample.trans[1]:view(1,3):expand(sample.repos[1]:size()))
       repos[i]:copy(output[1]:float()[1])
 
       if self.nOutput > 1 then

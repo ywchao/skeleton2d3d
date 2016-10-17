@@ -127,8 +127,8 @@ function PennCropDataset:get(idx, train)
 
   return {
     input = input,
-    repos = torch.zeros(1),
-    trans = torch.zeros(1),
+    repos = torch.zeros(pts:size(1),3),
+    trans = torch.zeros(3),
     focal = torch.zeros(1),
     proj = proj,
     mean = self.mean,

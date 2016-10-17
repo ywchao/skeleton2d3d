@@ -1,3 +1,5 @@
+-- main_pred.lua is intended to run on penn-crop only
+
 require 'cutorch'
 
 local DataLoader = require 'lib/dataloader'
@@ -12,13 +14,19 @@ torch.manualSeed(opt.manualSeed)
 cutorch.manualSeedAll(opt.manualSeed)
 
 -- Load model
-local model, _ = models.setup(opt, nil)
+local model, criterion = models.setup(opt, nil)
 
 -- Data loading
 local loaders = DataLoader.create(opt)
 
 -- The trainer handles the training loop and evaluation on validation set
-local trainer = Trainer(model, nil, opt, nil)
+local trainer = Trainer(model, criterion, opt, nil)
+
+-- Compute error and accuracy
+if opt.hg or #model.outnode.children == 4 then
+  trainer:test(0, 0, loaders, 'train')
+  trainer:test(0, 0, loaders, 'val')
+end
 
 -- Predict with the final model
 trainer:predict(loaders, 'train')
