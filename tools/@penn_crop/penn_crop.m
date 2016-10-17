@@ -7,6 +7,7 @@ classdef penn_crop
         part
         inputRes
         outputRes
+        hg
         img
     end
     methods
@@ -21,8 +22,10 @@ classdef penn_crop
             obj.visible = permute(hdf5read(annot_file,'visible'),[2 1]);
             obj.part = permute(hdf5read(annot_file,'part'),[3 2 1]);
             % get input and output resolution
-            obj.inputRes = opt.inputRes;
+            obj.inputRes = opt.inputResHG;
             obj.outputRes = opt.inputRes;
+            % check if the model contains pose estimation hourglass
+            obj.hg = opt.hg;
             % load lib
             obj.img = img();
         end
@@ -39,6 +42,6 @@ classdef penn_crop
         % get dataset size
         out = size(obj);
         
-        [input, target, center, scale] = get(obj, idx);
+        [input, proj, center, scale] = get(obj, idx);
     end
 end

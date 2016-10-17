@@ -1,5 +1,11 @@
 
-% expID = 'res-64-t1';
+% expID = 'res-64-t1'; mode = 0;
+% expID = 'res-64-t2'; mode = 0;
+% expID = 'res-64-t3'; mode = 0;
+
+% expID = 'hg-256-res-64'; mode = 1;
+% expID = 'hg-256-res-64-llprior-w0.001'; mode = 1;
+% expID = 'hg-256-res-64-llprior-w1'; mode = 1;
 
 % split = 'train';
 % split = 'val';
@@ -36,7 +42,13 @@ Features{1} = H36MPose3DPositionsFeature();
 % set opt and init dataset
 opt.data = './data/penn-crop';
 opt.inputRes = 64;
-dataset = penn_crop(opt, split);
+opt.inputResHG = 256;
+if mode == 0
+    opt.hg = false;
+    dataset = penn_crop(opt, split);
+end
+opt.hg = true;
+dataset_hg = penn_crop(opt, split);
 
 % set vis params
 pa = [0 1 1 2 3 4 5 2 3 8 9 10 11];
@@ -97,46 +109,62 @@ for i = run
     imshow(im); hold on;
     
     % draw annotation
-    for child = 2:p_no
-        x1 = part(i,pa(child),1);
-        y1 = part(i,pa(child),2);
-        x2 = part(i,child,1);
-        y2 = part(i,child,2);
-        % skip invisible joints
-        if visible(i,child)
-            plot(x2, y2, 'o', ...
-                'color', partcolor{child}, ...
-                'MarkerSize', msize, ...
-                'MarkerFaceColor', partcolor{child});
-            if visible(i,pa(child))
-                plot(x1, y1, 'o', ...
+    if mode == 0
+        for child = 2:p_no
+            x1 = part(i,pa(child),1);
+            y1 = part(i,pa(child),2);
+            x2 = part(i,child,1);
+            y2 = part(i,child,2);
+            % skip invisible joints
+            if visible(i,child)
+                plot(x2, y2, 'o', ...
                     'color', partcolor{child}, ...
                     'MarkerSize', msize, ...
                     'MarkerFaceColor', partcolor{child});
-                line([x1 x2], [y1 y2], ...
-                    'color', partcolor{child}, ...
-                    'linewidth',round(msize/2));
+                if visible(i,pa(child))
+                    plot(x1, y1, 'o', ...
+                        'color', partcolor{child}, ...
+                        'MarkerSize', msize, ...
+                        'MarkerFaceColor', partcolor{child});
+                    line([x1 x2], [y1 y2], ...
+                        'color', partcolor{child}, ...
+                        'linewidth',round(msize/2));
+                end
             end
         end
     end
     
     % draw heamap
-    [~, hm, ~, ~] = dataset.get(i);
+    [im, ~, ~, ~] = dataset_hg.get(i);
+    im = permute(im, [2 3 1]);
+    if mode == 0
+        [hm, ~, ~, ~] = dataset.get(i);
+    end
+    if mode == 1
+        hm_dir = ['./exp/penn-crop/' expID '/hmap_' split '/'];
+        hm_file = [hm_dir num2str(i,'%05d') '.mat'];
+        if exist(hm_file,'file')
+            hm = load(hm_file);
+            hm = hm.hmap;
+        end
+    end
     if exist('hh','var')
         delete(hh);
     end
-    hh = subplot('Position',[0.03+1/4 0.05 1/4-0.06 0.9]);
-    inp64 = imresize(double(im),[64 64]) * 0.3;
-    colorHms = cell(size(hm,1),1);
-    for j = 1:size(hm,1)
-        colorHms{j} = libimg.colorHM(squeeze(hm(j,:,:)));
-        colorHms{j} = colorHms{j} * 255 * 0.7 + permute(inp64,[3 1 2]);
+    if exist('hm','var')
+        hh = subplot('Position',[0.03+1/4 0.05 1/4-0.06 0.9]);
+        inp64 = imresize(double(im),[64 64]) * 0.3;
+        colorHms = cell(size(hm,1),1);
+        for j = 1:size(hm,1)
+            colorHms{j} = libimg.colorHM(squeeze(hm(j,:,:)));
+            colorHms{j} = colorHms{j} * 255 * 0.7 + permute(inp64,[3 1 2]);
+        end
+        totalHm = libimg.compileImages(colorHms, 4, 4, 64);
+        totalHm = permute(totalHm,[2 3 1]);
+        totalHm = uint8(totalHm);
+        imshow(totalHm);
     end
-    totalHm = libimg.compileImages(colorHms, 4, 4, 64);
-    totalHm = permute(totalHm,[2 3 1]);
-    totalHm = uint8(totalHm);
-    imshow(totalHm);
-    
+
     % show 3D skeleton (view 1)
     if exist('hs1','var')
         delete(hs1);
@@ -172,6 +200,11 @@ for i = run
     set(gca,'ZDir','reverse');
     % view([35,30]);
     view([152,24]);
+
+    % Show limb length
+    % conn = [ 2, 1; 3, 1; 4, 2; 5, 3; 6, 4; 7, 5; 8, 2; 9, 3;10, 8;11, 9;12,10;13,11];
+    % conn = joints(conn);
+    % sqrt(sum((pred(:,conn(:,1)) - pred(:,conn(:,2))).^2,1));
     
     set(gcf,'PaperPositionMode','auto');
     print(gcf,vis_file,'-dpng','-r0');
