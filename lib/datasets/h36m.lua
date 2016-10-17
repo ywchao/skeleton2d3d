@@ -186,6 +186,7 @@ function H36MDataset:get(idx, train)
     repos = repos,
     trans = trans,
     focal = focal,
+    hmap = hm,
     proj = proj,
     mean = torch.zeros(1),
     -- mean = self.mean,

@@ -32,13 +32,13 @@ function M.setup(opt, checkpoint)
         assert(paths.filep(opt.hgModel),
             'initial hourglass model not found: ' .. opt.hgModel)
         local model_hg = torch.load(opt.hgModel)
-        Model.loadHourglass(model, model_hg)
+        Model.loadHourglass(model, model_hg, opt.hgFix)
       end
       if opt.s3Model ~= 'none' then
         assert(paths.filep(opt.s3Model),
             'initial skel3dnet model not found: ' .. opt.s3Model)
         local model_s3 = torch.load(opt.s3Model)
-        Model.loadSkel3DNet(model, model_s3)
+        Model.loadSkel3DNet(model, model_s3, opt.s3Fix)
       end
     end
   end
@@ -55,10 +55,15 @@ function M.setup(opt, checkpoint)
     end
   end
   if opt.hg then
-    assert(nOutput == 1 or nOutput == 2)
+    assert(nOutput == 2 or nOutput == 3)
     if nOutput == 2 then
       criterion.weights[1] = 1
-      criterion.weights[2] = opt.weightLLPrior
+      criterion.weights[2] = opt.weightProj
+    end
+    if nOutput == 3 then
+      criterion.weights[1] = 1
+      criterion.weights[2] = opt.weightProj
+      criterion.weights[3] = opt.weightLLPrior
     end
   else
     assert(nOutput == 1 or nOutput == 3 or nOutput == 4)

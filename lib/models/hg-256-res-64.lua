@@ -164,16 +164,15 @@ function M.createModel(numPt, outputRes)
   local ll = lin(256,256,hg)
 
   -- Predicted heatmaps
-  local hm = cudnn.SpatialConvolution(256,numPt,1,1,1,1,0,0)(ll)
+  local hmap = cudnn.SpatialConvolution(256,numPt,1,1,1,1,0,0)(ll)
 
   -- 3D skeleton net
-  local proj = skel3dnet(hm, numPt, outputRes)
+  local proj = skel3dnet(hmap, numPt, outputRes)
 
   -- Final model
-  local model = nn.gModule({inp}, {proj})
+  local model = nn.gModule({inp}, {hmap, proj})
 
   -- Save layer number for repos, trans, focal
-  model['id_hmap'] = 37
   model['id_repos'] = 54
   model['id_trans'] = 61
   model['id_focal'] = 71
@@ -184,22 +183,23 @@ function M.createModel(numPt, outputRes)
   return model
 end
 
-function M.loadHourglass(model, model_hg)
+function M.loadHourglass(model, model_hg, fix)
   -- Load weight and bias
   for i = 1, #model_hg.modules do
     local name = torch.typename(model.modules[i])
     local name_hg = torch.typename(model_hg.modules[i])
     assert(name == name_hg, 'weight loading error: class name mismatch')
     tieWeightBiasOneModule(model_hg.modules[i], model.modules[i])
-    -- Fix hourglass weight and bias for now
-    fixWeightBiasOneModule(model.modules[i])
+    if fix then
+      fixWeightBiasOneModule(model.modules[i])
+    end
   end
 
   -- Zero the gradients; not sure if this is necessary
   model:zeroGradParameters()
 end
 
-function M.loadSkel3DNet(model, model_s3)
+function M.loadSkel3DNet(model, model_s3, fix)
   -- Load weight and bias
   local offset = 36
   for i = 2, #model_s3.modules do
@@ -214,6 +214,9 @@ function M.loadSkel3DNet(model, model_s3)
     local name_s3 = torch.typename(model_s3.modules[i])
     assert(name == name_s3, 'weight loading error: class name mismatch')
     tieWeightBiasOneModule(model_s3.modules[i], model.modules[c])
+    if fix then
+      fixWeightBiasOneModule(model.modules[c])
+    end
   end
 
   -- Zero the gradients; not sure if this is necessary

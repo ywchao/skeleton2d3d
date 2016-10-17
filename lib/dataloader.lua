@@ -89,6 +89,7 @@ function DataLoader:run(kwargs)
                local repos, reposSize
                local trans, transSize
                local focal
+               local hmap, hmapSize
                local proj, projSize
                local mean, meanSize
                for i, idx in ipairs(indices:totable()) do
@@ -113,6 +114,10 @@ function DataLoader:run(kwargs)
                   if not focal then
                      focal = torch.FloatTensor(sz, 1)
                   end
+                  if not hmap then
+                     hmapSize = sample.hmap:size():totable()
+                     hmap = torch.FloatTensor(sz, unpack(hmapSize))
+                  end
                   if not proj then
                      projSize = sample.proj:size():totable()
                      proj = torch.FloatTensor(sz, unpack(projSize))
@@ -125,6 +130,7 @@ function DataLoader:run(kwargs)
                   repos[i] = sample.repos
                   trans[i] = sample.trans
                   focal[i] = sample.focal
+                  hmap[i] = sample.hmap
                   proj[i] = sample.proj
                   mean[i] = sample.mean
                end
@@ -138,6 +144,7 @@ function DataLoader:run(kwargs)
                   repos = repos,
                   trans = trans,
                   focal = focal,
+                  hmap = hmap,
                   proj = proj,
                   mean = mean,
                }

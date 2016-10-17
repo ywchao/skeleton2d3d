@@ -6,6 +6,7 @@ local Logger = require 'lib/util/Logger'
 local geometry = require 'lib/util/geometry'
 local img = require 'lib/util/img'
 local eval = require 'lib/util/eval'
+local util = require 'common/util'
 
 local M = {}
 local Trainer = torch.class('skeleton2d3d.Trainer', M)
@@ -76,6 +77,7 @@ function Trainer:train(epoch, loaders)
     local repos = sample.repos:cuda()
     local trans = sample.trans:cuda()
     local focal = sample.focal:cuda()
+    local hmap = sample.hmap:cuda()
     local proj = sample.proj:cuda()
     local mean = sample.mean:cuda()
     
@@ -91,10 +93,9 @@ function Trainer:train(epoch, loaders)
     local output = self.model:forward(input)
     if self.opt.hg then
       local proj_ = proj:clone()
-      if self.nOutput == 1 then proj_[proj_:eq(0)] = output[proj_:eq(0)] end
-      if self.nOutput == 2 then proj_[proj_:eq(0)] = output[1][proj_:eq(0)] end
-      if self.nOutput == 1 then target = proj_ end
-      if self.nOutput == 2 then target = {proj_, mean} end
+      proj_[proj_:eq(0)] = output[2][proj_:eq(0)]
+      if self.nOutput == 2 then target = {hmap, proj_} end
+      if self.nOutput == 3 then target = {hmap, proj_, mean} end
     end
     local loss = self.criterion:forward(self.model.output, target)
 
@@ -108,10 +109,11 @@ function Trainer:train(epoch, loaders)
 
     -- Compute mean per joint position error (MPJPE)
     if self.nOutput == 1 then output = {output} end
-    local pred = output[1]:float()
-    local err, acc
+    local pred, err, acc
     if self.opt.hg then
       proj = proj:float()
+      if self.opt.hgFix then pred = output[2]:float() end
+      if self.opt.s3Fix then pred = eval.getPreds(output[1]:float()) end
       if self.opt.dataset == 'penn-crop' then
         err = self:_computeError(proj,pred)
       else
@@ -120,6 +122,7 @@ function Trainer:train(epoch, loaders)
       acc = self:_computeAccuracy(proj,pred)
     else
       repos = repos:float()
+      pred = output[1]:float()
       err = torch.csub(repos,pred):pow(2):sum(3):sqrt():mean(2):mean()
       acc = 0/0
     end
@@ -160,6 +163,7 @@ function Trainer:test(epoch, iter, loaders, split)
     local repos = sample.repos:cuda()
     local trans = sample.trans:cuda()
     local focal = sample.focal:cuda()
+    local hmap = sample.hmap:cuda()
     local proj = sample.proj:cuda()
     local mean = sample.mean:cuda()
 
@@ -174,30 +178,20 @@ function Trainer:test(epoch, iter, loaders, split)
     -- Forward pass
     local output = self.model:forward(input)
     if self.opt.hg then
-      local proj1, proj2
-      if self.nOutput == 1 then
-        proj1 = output[{{1}}]
-        proj2 = output[{{2}}]
-      end
-      if self.nOutput == 2 then
-        proj1 = output[1][{{1}}]
-        proj2 = output[1][{{2}}]
-      end
-      local proj2 = proj2 - (self.opt.inputRes+1)/2
-      local proj2 = geometry.flip(geometry.shuffleLR(proj2,self.jointType))
-      local proj2 = proj2 + (self.opt.inputRes+1)/2
-      if self.nOutput == 1 then
-        output = torch.add(proj1,proj2):div(2)
-      end
-      if self.nOutput == 2 then
-        output[1] = torch.add(proj1,proj2):div(2)
-        output[2] = output[2]:mean(1)
-      end
+      local hmap1 = output[1][{{1}}]
+      local hmap2 = img.flip(img.shuffleLR(output[1][{{2}}],self.jointType))
+      local proj1 = output[2][{{1}}]
+      local proj2 = output[2][{{2}}]
+      proj2 = proj2 - (self.opt.inputRes+1)/2
+      proj2 = geometry.flip(geometry.shuffleLR(proj2,self.jointType))
+      proj2 = proj2 + (self.opt.inputRes+1)/2
+      output[1] = torch.add(hmap1,hmap2):div(2)
+      output[2] = torch.add(proj1,proj2):div(2)
+      if self.nOutput == 3 then output[3] = output[3]:mean(1) end
       local proj_ = proj:clone()
-      if self.nOutput == 1 then proj_[proj_:eq(0)] = output[proj_:eq(0)] end
-      if self.nOutput == 2 then proj_[proj_:eq(0)] = output[1][proj_:eq(0)] end
-      if self.nOutput == 1 then target = proj_ end
-      if self.nOutput == 2 then target = {proj_, mean} end
+      proj_[proj_:eq(0)] = output[2][proj_:eq(0)]
+      if self.nOutput == 2 then target = {hmap, proj_} end
+      if self.nOutput == 3 then target = {hmap, proj_, mean} end
     end
     local loss = self.criterion:forward(output, target)
 
@@ -208,24 +202,17 @@ function Trainer:test(epoch, iter, loaders, split)
       assert(input:size(1) == 1, 'batch size must be 1 with run({train=false})')
     end
     if self.nOutput == 1 then output = {output} end
-    local pred = output[1]:float()
-    local err, acc
+    local pred, err, acc
     if self.opt.hg then
       proj = proj:float()
+      if self.opt.hgFix then pred = output[2]:float() end
+      if self.opt.s3Fix then pred = eval.getPreds(output[1]:float()) end
       if self.opt.dataset == 'penn-crop' then
         err = self:_computeError(proj,pred)
       else
         err = torch.csub(proj,pred):pow(2):sum(3):sqrt():mean()
       end
       acc = self:_computeAccuracy(proj,pred)
-      -- -- Compute heatmap error/accuracy
-      -- local hmapOut = self.model.modules[self.model.id_hmap].output:float()
-      -- local hmap1 = hmapOut[{{1}}]
-      -- local hmap2 = img.flip(img.shuffleLR(hmapOut[{{2}}],self.jointType))
-      -- local hmap = torch.add(hmap1,hmap2):div(2)
-      -- pred = eval.getPreds(hmap)
-      -- err = self:_computeError(proj,pred)
-      -- acc = self:_computeAccuracy(proj,pred)
     else
       if self.opt.dataset == 'penn-crop' then
         assert(self.nOutput == 4)
@@ -235,6 +222,7 @@ function Trainer:test(epoch, iter, loaders, split)
         acc = self:_computeAccuracy(proj,pred)
       else
         repos = repos:float()
+        pred = output[1]:float()
         err = torch.csub(repos,pred):pow(2):sum(3):sqrt():mean()
         acc = 0/0
       end
@@ -286,25 +274,16 @@ function Trainer:predict(loaders, split)
     -- Forward pass
     local output = self.model:forward(input)
     if self.opt.hg then
-      local proj1, proj2
-      if self.nOutput == 1 then
-        proj1 = output[{{1}}]
-        proj2 = output[{{2}}]
-      end
-      if self.nOutput == 2 then
-        proj1 = output[1][{{1}}]
-        proj2 = output[1][{{2}}]
-      end
-      local proj2 = proj2 - (self.opt.inputRes+1)/2
-      local proj2 = geometry.flip(geometry.shuffleLR(proj2,self.jointType))
-      local proj2 = proj2 + (self.opt.inputRes+1)/2
-      if self.nOutput == 1 then
-        output = torch.add(proj1,proj2):div(2)
-      end
-      if self.nOutput == 2 then
-        output[1] = torch.add(proj1,proj2):div(2)
-        output[2] = output[2]:mean(1)
-      end
+      local hmap1 = output[1][{{1}}]
+      local hmap2 = img.flip(img.shuffleLR(output[1][{{2}}],self.jointType))
+      local proj1 = output[2][{{1}}]
+      local proj2 = output[2][{{2}}]
+      proj2 = proj2 - (self.opt.inputRes+1)/2
+      proj2 = geometry.flip(geometry.shuffleLR(proj2,self.jointType))
+      proj2 = proj2 + (self.opt.inputRes+1)/2
+      output[1] = torch.add(hmap1,hmap2):div(2)
+      output[2] = torch.add(proj1,proj2):div(2)
+      if self.nOutput == 3 then output[3] = output[3]:mean(1) end
     end
 
     -- Copy output
@@ -333,20 +312,19 @@ function Trainer:predict(loaders, split)
         focal = torch.FloatTensor(size, unpack(focal_p:size():totable()))
       end
       if not proj then
-        proj = torch.FloatTensor(size, unpack(output[1][1]:size():totable()))
+        proj = torch.FloatTensor(size, unpack(output[2][1]:size():totable()))
       end
       poses[i]:copy(sample.proj[1])
       repos[i]:copy(repos_p)
       trans[i]:copy(trans_p)
       focal[i]:copy(focal_p)
-      proj[i]:copy(output[1]:float()[1])
+      proj[i]:copy(output[2]:float()[1])
+
       -- Save heatmap output
-      -- local hmap_p = self.model.modules[self.model.id_hmap].output:float()[1]
-      -- hmap_dir = paths.concat(self.opt.save,'hmap_' .. split)
-      -- require '../../common/util'
-      -- makedir(hmap_dir)
-      -- hmap_file = paths.concat(hmap_dir, string.format("%05d.mat" % index[1]))
-      -- matio.save(hmap_file, {hmap = hmap_p})
+      local hmap_path = paths.concat(self.opt.save,'hmap_' .. split)
+      local hmap_file = paths.concat(hmap_path, string.format("%05d.mat" % index[1]))
+      util.makedir(hmap_path)
+      matio.save(hmap_file, {hmap = output[1]:float()[1]})
     else
       if not poses then
         poses = torch.FloatTensor(size, unpack(sample.repos[1]:size():totable()))

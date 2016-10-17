@@ -3,6 +3,7 @@ require 'image'
 
 local matio = require 'matio'
 local img = require 'lib/util/img'
+local geometry = require 'lib/util/geometry'
 
 local M = {}
 local PennCropDataset = torch.class('skeleton2d3d.PennCropDataset', M)
@@ -57,8 +58,6 @@ function PennCropDataset:_getCenterScale(im)
   assert(im:size():size() == 3)
   local w = im:size(3)
   local h = im:size(2)
-  -- local w = im:size(2)
-  -- local h = im:size(3)
   local x = (w+1)/2
   local y = (h+1)/2
   local scale = math.max(w,h)/200
@@ -90,7 +89,6 @@ function PennCropDataset:get(idx, train)
   for i = 1, pts:size(1) do
     if vis[i] == 1 then
       proj[i] = img.transform(pts[i], center, scale, 0, self.outputRes, false, false)
-      -- proj[i] = img.transform(torch.add(pts[i],1), center, scale, 0, self.outputRes, false)
     end
   end
 
@@ -99,16 +97,47 @@ function PennCropDataset:get(idx, train)
   for i = 1, pts:size(1) do
     if vis[i] == 1 then
       img.drawGaussian(hm[i], torch.round(proj[i]), 2)
-      -- img.drawGaussian(hm[i], proj[i]:int(), 2)
-      -- img.drawGaussian(hm[i], proj[i], 2)
     end
   end
 
-  -- -- Artificially create proj for fair comparison with pose-hg-train
-  -- eval = require 'lib/util/eval'
-  -- proj = eval.getPreds(hm:view(1,unpack(hm:size():totable())))
-  -- -- proj = proj:permute(2,3,1):squeeze()
-  -- proj = proj:view(pts:size())
+  -- Augment data
+  if self.hg then
+    if train then
+      local sFactor = 0.25
+      local rFactor = 30
+      local s = torch.randn(1):mul(sFactor):add(1):clamp(1-sFactor,1+sFactor)[1]
+      local r = torch.randn(1):mul(rFactor):clamp(-2*rFactor,2*rFactor)[1]
+      -- Color
+      im[{1, {}, {}}]:mul(torch.uniform(0.8, 1.2)):clamp(0, 1)
+      im[{2, {}, {}}]:mul(torch.uniform(0.8, 1.2)):clamp(0, 1)
+      im[{3, {}, {}}]:mul(torch.uniform(0.8, 1.2)):clamp(0, 1)
+      -- Scale & rotation
+      if torch.uniform() <= .6 then r = 0 end
+      local inp, out = self.inputRes, self.outputRes
+      im = img.crop(im, {(inp+1)/2,(inp+1)/2}, inp*s/200, r, inp)
+      hm = img.crop(hm, {(out+1)/2,(out+1)/2}, out*s/200, r, out)
+      for i = 1, pts:size(1) do
+        if vis[i] == 1 then
+          proj[i] = img.transform(proj[i], {(out+1)/2,(out+1)/2}, out*s/200, r, out, false, false)
+        end
+      end
+      -- Flip
+      if torch.uniform() <= .5 then
+        im = img.flip(im)
+        hm = img.flip(img.shuffleLR(hm,'penn-crop'))
+        proj = geometry.shuffleLR(proj,'penn-crop')
+        local ind = proj:eq(0)
+        proj[{{},1}] = self.outputRes - proj[{{},1}] + 1
+        proj[ind] = 0
+      end
+    else
+      -- Add flipped image
+      local im_ = torch.zeros(2, unpack(im:size():totable()))
+      im_[1] = im:clone()
+      im_[2] = img.flip(im)
+      im = im_
+    end
+  end
 
   -- Set input
   if self.hg then
@@ -117,19 +146,12 @@ function PennCropDataset:get(idx, train)
     input = hm
   end
 
-  -- Add flipped input for prediction
-  if self.hg and not train then
-    local input_ = torch.zeros(2, unpack(input:size():totable()))
-    input_[1] = input:clone()
-    input_[2] = img.flip(input)
-    input = input_
-  end
-
   return {
     input = input,
     repos = torch.zeros(pts:size(1),3),
     trans = torch.zeros(3),
     focal = torch.zeros(1),
+    hmap = hm,
     proj = proj,
     mean = self.mean,
   }
