@@ -7,12 +7,12 @@ else
 fi
 
 CUDA_VISIBLE_DEVICES=$gpu_id th main.lua \
-  -expID hg-256-res-64-s3fix-proj-w0.00001 \
+  -expID hg-256-res-64-s3fix-s3-proj-w100 \
   -dataset penn-crop \
   -data ./data/penn-crop \
   -nEpochs 10 \
   -batchSize 6 \
-  -weightProj 0.00001 \
+  -weightProj 100 \
   -LR 2.5e-4 \
   -netType hg-256-res-64 \
   -hg \

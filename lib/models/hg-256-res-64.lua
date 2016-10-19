@@ -89,7 +89,7 @@ local function skel3dnet(inp, numPt, outputRes)
   local proj = nn.CMulTable()({proj,repf})
   local proj = nn.AddConstant(outputRes/2)(proj)
 
-  return proj
+  return proj, repos, trans, focal
 end
 
 local function tieWeightBiasOneModule(module1, module2)
@@ -167,15 +167,10 @@ function M.createModel(numPt, outputRes)
   local hmap = cudnn.SpatialConvolution(256,numPt,1,1,1,1,0,0)(ll)
 
   -- 3D skeleton net
-  local proj = skel3dnet(hmap, numPt, outputRes)
+  local proj, repos, trans, focal = skel3dnet(hmap, numPt, outputRes)
 
   -- Final model
-  local model = nn.gModule({inp}, {hmap, proj})
-
-  -- Save layer number for repos, trans, focal
-  model['id_repos'] = 54
-  model['id_trans'] = 61
-  model['id_focal'] = 71
+  local model = nn.gModule({inp}, {hmap, repos, trans, focal, proj})
 
   -- Zero the gradients; not sure if this is necessary
   model:zeroGradParameters()
@@ -204,12 +199,6 @@ function M.loadSkel3DNet(model, model_s3, fix)
   local offset = 36
   for i = 2, #model_s3.modules do
     local c = i + offset
-    if i >= 26 and i <= 29 then 
-      c = c + 6
-    end
-    if i >= 30 and i <= 35 then
-      c = c - 4
-    end
     local name = torch.typename(model.modules[c])
     local name_s3 = torch.typename(model_s3.modules[i])
     assert(name == name_s3, 'weight loading error: class name mismatch')

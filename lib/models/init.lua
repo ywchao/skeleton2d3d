@@ -55,15 +55,18 @@ function M.setup(opt, checkpoint)
     end
   end
   if opt.hg then
-    assert(nOutput == 2 or nOutput == 3)
-    if nOutput == 2 then
+    assert(nOutput == 5 or nOutput == 6)
+    criterion.weights[2] = 0
+    criterion.weights[3] = 0
+    criterion.weights[4] = 0
+    if nOutput == 5 then
       criterion.weights[1] = 1
-      criterion.weights[2] = opt.weightProj
+      criterion.weights[5] = opt.weightProj
     end
-    if nOutput == 3 then
+    if nOutput == 6 then
       criterion.weights[1] = 1
-      criterion.weights[2] = opt.weightProj
-      criterion.weights[3] = opt.weightLLPrior
+      criterion.weights[5] = opt.weightProj
+      criterion.weights[6] = opt.weightLLPrior
     end
   else
     assert(nOutput == 1 or nOutput == 3 or nOutput == 4)
