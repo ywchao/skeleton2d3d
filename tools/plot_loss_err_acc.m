@@ -4,16 +4,37 @@ figure(1);
 
 dataset = 'penn-crop';
 
-% exp_name = 'hg-256-res-64';
+% exp_name = 'hg-256-res-64-hgfix';
 % epoch_size = 4921;  clr = 'r';
-% exp_name = 'hg-256-res-64-llprior-w0.001';
+% exp_name = 'hg-256-res-64-hgfix-llprior-w0.001';
 % epoch_size = 4921;  clr = 'g';
-% exp_name = 'hg-256-res-64-llprior-w1';
+% exp_name = 'hg-256-res-64-hgfix-llprior-w1';
 % epoch_size = 4921;  clr = 'b';
 
-maxy11 = 50;  maxy21 = 50;
-maxy12 = 24;  maxy22 = 24;
-maxy13 = 1;   maxy23 = 1;
+% maxy11 = 50;  maxy21 = 50;
+% maxy12 = 24;  maxy22 = 24;
+% maxy13 = 1;   maxy23 = 1;
+% miny13 = 0;   miny23 = 0;
+
+% exp_name = 'hg-256-res-64-s3fix-proj-w1';
+% epoch_size = 13121;  clr = 'y';
+% exp_name = 'hg-256-res-64-s3fix-proj-w0.001';
+% epoch_size = 13121;  clr = 'r';
+% exp_name = 'hg-256-res-64-s3fix-proj-w0.0001';
+% epoch_size = 13121;  clr = 'g';
+% exp_name = 'hg-256-res-64-s3fix-proj-w0.00001';
+% epoch_size = 13121;  clr = 'b';
+% exp_name = 'hg-256-res-64-s3fix-proj-w0.000001';
+% epoch_size = 13121;  clr = 'c';
+% exp_name = 'hg-256-res-64-s3fix-proj-w0.0000001';
+% epoch_size = 13121;  clr = 'm';
+% exp_name = 'hg-256-res-64-s3fix-proj-w0';
+% epoch_size = 13121;  clr = 'r';
+
+% maxy11 = 20;  maxy21 = 20;
+% maxy12 = 5;   maxy22 = 5;
+% maxy13 = 1;   maxy23 = 1;
+% miny13 = 0.5; miny23 = 0.5;
 
 disp_int = 1000;
 
@@ -125,9 +146,9 @@ axis([lim(1:2) 0 maxy22]);
 
 subplot('Position',[0.02+2/3 0.56 1/3-0.03 0.4]);
 lim = [xlim, ylim];
-axis([lim(1:2) 0 maxy13]);
+axis([lim(1:2) miny13 maxy13]);
 subplot('Position',[0.02+2/3 0.06 1/3-0.03 0.4]);
-axis([lim(1:2) 0 maxy23]);
+axis([lim(1:2) miny23 maxy23]);
 
 % save to file
 save_file = ['outputs/plot_' exp_name '.pdf'];

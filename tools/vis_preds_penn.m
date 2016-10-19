@@ -2,10 +2,12 @@
 % expID = 'res-64-t1'; mode = 0;
 % expID = 'res-64-t2'; mode = 0;
 % expID = 'res-64-t3'; mode = 0;
+% expID = 'hg-256-res-64-hgfix-pred'; mode = 1;
 
-% expID = 'hg-256-res-64'; mode = 1;
-% expID = 'hg-256-res-64-llprior-w0.001'; mode = 1;
-% expID = 'hg-256-res-64-llprior-w1'; mode = 1;
+% expID = 'hg-256-res-64-hgfix'; mode = 1;
+% expID = 'hg-256-res-64-hgfix-llprior-w0.001'; mode = 1;
+% expID = 'hg-256-res-64-hgfix-llprior-w1'; mode = 1;
+% expID = 'hg-256-res-64-s3fix-proj-w0.00001'; mode = 1;
 
 % split = 'train';
 % split = 'val';
@@ -57,7 +59,7 @@ msize = 4;
 partcolor = {'b','b','b','g','r','g','r','g','r','g','r','g','r'};
 
 % visualize first min(K,len) videos for each action
-K = 10;
+K = 3;
 list_seq = dir('./data/penn-crop/labels/*.mat');
 list_seq = {list_seq.name}';
 num_seq = numel(list_seq);
@@ -199,7 +201,8 @@ for i = run
     axis([minx maxx miny maxy minz maxz]);
     set(gca,'ZDir','reverse');
     % view([35,30]);
-    view([152,24]);
+    % view([152,24]);
+    view([85,10]);
 
     % Show limb length
     % conn = [ 2, 1; 3, 1; 4, 2; 5, 3; 6, 4; 7, 5; 8, 2; 9, 3;10, 8;11, 9;12,10;13,11];

@@ -14,7 +14,7 @@ disp_int = 100;
 % set parameters
 max_epoch = 75;
 
-format = '%s %s %s %s %s %s';
+format = '%s %s %s %s %s %s %s';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 log_file = ['./exp/h36m/' exp_name '/train.log'];
