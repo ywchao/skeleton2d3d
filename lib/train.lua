@@ -27,12 +27,13 @@ function Trainer:__init(model, criterion, opt, optimState)
   self:initLogger(self.logger['train'])
   self:initLogger(self.logger['val'])
   -- Set log format
-  if self.opt.hg then
-    self.format_l = '%7.4f'
-    self.format_e = '%7.4f'
-  else
+  if self.opt.dataset == 'h36m' then
     self.format_l = '%7.0f'
     self.format_e = '%7.2f'
+  end
+  if self.opt.dataset == 'penn-crop' then
+    self.format_l = '%7.4f'
+    self.format_e = '%7.4f'
   end
   self.nOutput = #self.model.outnode.children
   self.jointType = opt.dataset
@@ -110,21 +111,29 @@ function Trainer:train(epoch, loaders)
     -- Compute mean per joint position error (MPJPE)
     if self.nOutput == 1 then output = {output} end
     local pred, err, acc
-    if self.opt.hg then
+    if self.opt.dataset == 'h36m' then
+      repos = repos:float()
+      if self.opt.hg then
+        pred = output[2]:float()
+      else
+        pred = output[1]:float()
+      end
+      err = torch.csub(repos,pred):pow(2):sum(3):sqrt():mean(2):mean()
+      acc = 0/0
+      -- store 2d error to acc for hg
+      if self.opt.hg then
+        assert(self.opt.evalOut == 's3')
+        proj = proj:float()
+        pred = output[5]:float()
+        acc = torch.csub(proj,pred):pow(2):sum(3):sqrt():mean(2):mean()
+      end
+    end
+    if self.opt.dataset == 'penn-crop' then
       proj = proj:float()
       if self.opt.evalOut == 's3' then pred = output[5]:float() end
       if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
-      if self.opt.dataset == 'penn-crop' then
-        err = self:_computeError(proj,pred)
-      else
-        err = torch.csub(proj,pred):pow(2):sum(3):sqrt():mean(2):mean()
-      end
+      err = self:_computeError(proj,pred)
       acc = self:_computeAccuracy(proj,pred)
-    else
-      repos = repos:float()
-      pred = output[1]:float()
-      err = torch.csub(repos,pred):pow(2):sum(3):sqrt():mean(2):mean()
-      acc = 0/0
     end
 
     -- Print and log
@@ -180,15 +189,18 @@ function Trainer:test(epoch, iter, loaders, split)
     if self.opt.hg then
       local hmap1 = output[1][{{1}}]
       local hmap2 = img.flip(img.shuffleLR(output[1][{{2}}],self.jointType))
+      local repos1 = output[2][{{1}}]
+      local repos2 = geometry.flip(geometry.shuffleLR(output[2][{{2}}],self.jointType))
+      local trans1 = output[3][{{1}}]
+      local trans2 = geometry.flip(output[3][{{2}}])
       local proj1 = output[5][{{1}}]
-      local proj2 = output[5][{{2}}]
-      proj2 = proj2 - (self.opt.inputRes+1)/2
-      proj2 = geometry.flip(geometry.shuffleLR(proj2,self.jointType))
-      proj2 = proj2 + (self.opt.inputRes+1)/2
+      local proj2 = geometry.shuffleLR(output[5][{{2}}],self.jointType)
+      local ind = proj2:eq(0)
+      proj2[{{},{},1}] = self.opt.inputRes - proj2[{{},{},1}] + 1
+      proj2[ind] = 0
       output[1] = torch.add(hmap1,hmap2):div(2)
-      -- TODO: fix this for h36m later
-      output[2] = output[2]:mean(1)
-      output[3] = output[3]:mean(1)
+      output[2] = torch.add(repos1,repos2):div(2)
+      output[3] = torch.add(trans1,trans2):div(2)
       output[4] = output[4]:mean(1)
       output[5] = torch.add(proj1,proj2):div(2)
       if self.nOutput == 6 then output[6] = output[6]:mean(1) end
@@ -207,29 +219,34 @@ function Trainer:test(epoch, iter, loaders, split)
     end
     if self.nOutput == 1 then output = {output} end
     local pred, err, acc
-    if self.opt.hg then
-      proj = proj:float()
-      if self.opt.evalOut == 's3' then pred = output[5]:float() end
-      if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
-      if self.opt.dataset == 'penn-crop' then
-        err = self:_computeError(proj,pred)
+    if self.opt.dataset == 'h36m' then
+      repos = repos:float()
+      if self.opt.hg then
+        pred = output[2]:float()
       else
-        err = torch.csub(proj,pred):pow(2):sum(3):sqrt():mean()
-      end
-      acc = self:_computeAccuracy(proj,pred)
-    else
-      if self.opt.dataset == 'penn-crop' then
-        assert(self.nOutput == 4)
-        proj = proj:float()
-        pred = output[4]:float()
-        err = self:_computeError(proj,pred)
-        acc = self:_computeAccuracy(proj,pred)
-      else
-        repos = repos:float()
         pred = output[1]:float()
-        err = torch.csub(repos,pred):pow(2):sum(3):sqrt():mean()
-        acc = 0/0
       end
+      err = torch.csub(repos,pred):pow(2):sum(3):sqrt():mean(2):mean()
+      acc = 0/0
+      -- store 2d error to acc for hg
+      if self.opt.hg then
+        assert(self.opt.evalOut == 's3')
+        proj = proj:float()
+        pred = output[5]:float()
+        acc = torch.csub(proj,pred):pow(2):sum(3):sqrt():mean(2):mean()
+      end
+    end
+    if self.opt.dataset == 'penn-crop' then
+      proj = proj:float()
+      if self.opt.hg then
+        if self.opt.evalOut == 's3' then pred = output[5]:float() end
+        if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
+      else
+        assert(self.nOutput == 4)
+        pred = output[4]:float()
+      end
+      err = self:_computeError(proj,pred)
+      acc = self:_computeAccuracy(proj,pred)
     end
 
     lossSum = lossSum + loss
@@ -280,15 +297,18 @@ function Trainer:predict(loaders, split)
     if self.opt.hg then
       local hmap1 = output[1][{{1}}]
       local hmap2 = img.flip(img.shuffleLR(output[1][{{2}}],self.jointType))
+      local repos1 = output[2][{{1}}]
+      local repos2 = geometry.flip(geometry.shuffleLR(output[2][{{2}}],self.jointType))
+      local trans1 = output[3][{{1}}]
+      local trans2 = geometry.flip(output[3][{{2}}])
       local proj1 = output[5][{{1}}]
-      local proj2 = output[5][{{2}}]
-      proj2 = proj2 - (self.opt.inputRes+1)/2
-      proj2 = geometry.flip(geometry.shuffleLR(proj2,self.jointType))
-      proj2 = proj2 + (self.opt.inputRes+1)/2
+      local proj2 = geometry.shuffleLR(output[5][{{2}}],self.jointType)
+      local ind = proj2:eq(0)
+      proj2[{{},{},1}] = self.opt.inputRes - proj2[{{},{},1}] + 1
+      proj2[ind] = 0
       output[1] = torch.add(hmap1,hmap2):div(2)
-      -- TODO: fix this for h36m later
-      output[2] = output[2]:mean(1)
-      output[3] = output[3]:mean(1)
+      output[2] = torch.add(repos1,repos2):div(2)
+      output[3] = torch.add(trans1,trans2):div(2)
       output[4] = output[4]:mean(1)
       output[5] = torch.add(proj1,proj2):div(2)
       if self.nOutput == 6 then output[6] = output[6]:mean(1) end

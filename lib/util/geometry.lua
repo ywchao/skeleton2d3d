@@ -69,6 +69,7 @@ function M.shuffleLR(x, dataset)
   assert(x:dim() == 3 or x:dim() == 2, 'dim must be 3 or 2')
   local dim = x:dim() - 1
   local matchedParts
+  assert(dataset == 'penn-crop', 'currently only supports penn-crop')
   if dataset == 'penn-crop' then
     matchedParts = {{ 2, 3}, { 4, 5}, { 6, 7}, { 8, 9}, {10,11}, {12,13}}
   end

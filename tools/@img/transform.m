@@ -5,8 +5,8 @@ if nargin < 7
 end
 
 pt_ = ones(3,1);
-pt_(1) = pt(1)-1;
-pt_(2) = pt(2)-1;
+pt_(1) = pt(1);
+pt_(2) = pt(2);
 
 T = getTransform(obj, center, scale, rot, res);
 if invert
@@ -18,6 +18,5 @@ pt_new = pt_new(1:2,:) + 1e-4;
 if ~exist('rnd','var') || rnd
     pt_new = round(pt_new);
 end
-pt_new = pt_new + 1;
 
 end

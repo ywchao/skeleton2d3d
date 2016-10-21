@@ -56,9 +56,16 @@ function M.setup(opt, checkpoint)
   end
   if opt.hg then
     assert(nOutput == 5 or nOutput == 6)
-    criterion.weights[2] = 0
-    criterion.weights[3] = 0
-    criterion.weights[4] = 0
+    if opt.dataset == 'h36m' then
+      criterion.weights[2] = 1
+      criterion.weights[3] = 1
+      criterion.weights[4] = 1
+    end
+    if opt.dataset == 'penn-crop' then
+      criterion.weights[2] = 0
+      criterion.weights[3] = 0
+      criterion.weights[4] = 0
+    end
     if nOutput == 5 then
       criterion.weights[1] = 1
       criterion.weights[5] = opt.weightProj
