@@ -51,6 +51,7 @@ for s = S
                 % get projection and crop box
                 cc = single(zeros(0,51));
                 cp = single(zeros(0,34));
+                bbox = zeros(size(pose,1),4);
                 for p = 1:size(pose,1)
                     P = reshape(pose(p,:),[3 numel(pose(p,:))/3])';
                     N = size(P,1);
@@ -58,21 +59,22 @@ for s = S
                     cc = [cc; reshape(X,[1 numel(X)])];  %#ok
 
                     proj = Camera.project(Features{1}.toPositions(pose(p,:),posSkel));
+                    
+                    minx = min(proj(1:2:33));
+                    maxx = max(proj(1:2:33));
+                    miny = min(proj(2:2:34));
+                    maxy = max(proj(2:2:34));
+                    rx = max(abs([minx,maxx] - Camera.c(1)));
+                    ry = max(abs([miny,maxy] - Camera.c(2)));
+                    r = max(rx,ry);
+                    bbox(p,1) = round(Camera.c(1) - r);
+                    bbox(p,2) = round(Camera.c(1) + r);
+                    bbox(p,3) = round(Camera.c(2) - r);
+                    bbox(p,4) = round(Camera.c(2) + r);
+                    proj(1:2:33) = proj(1:2:33) - bbox(p,1) + 1;
+                    proj(2:2:34) = proj(2:2:34) - bbox(p,3) + 1;
                     cp = [cp; proj'];  %#ok
                 end
-                minx = min(min(cp(:,1:2:33)));
-                maxx = max(max(cp(:,1:2:33)));
-                miny = min(min(cp(:,2:2:34)));
-                maxy = max(max(cp(:,2:2:34)));
-                rx = max(abs([minx,maxx] - Camera.c(1)));
-                ry = max(abs([miny,maxy] - Camera.c(2)));
-                r = max(rx,ry);
-                x1 = round(Camera.c(1) - r);
-                x2 = round(Camera.c(1) + r);
-                y1 = round(Camera.c(2) - r);
-                y2 = round(Camera.c(2) + r);
-                cp(:,1:2:33) = cp(:,1:2:33) - x1 + 1;
-                cp(:,2:2:34) = cp(:,2:2:34) - y1 + 1;
                 
                 if c == 1
                     sz = size(coord_c,2);
@@ -88,23 +90,23 @@ for s = S
                 vidfeat = H36MRGBVideoFeature();
                 da = vidfeat.serializer(Sequence);
                 assert(da.Reader.NumberOfFrames >= size(pose,1));
-                
                 assert(da.Reader.Height == Camera.Resolution(1));
                 assert(da.Reader.Width == Camera.Resolution(2));
                 
                 im_dir = [im_root sprintf('%02d/%02d/%1d/',s,a,b)];
                 makedir(im_dir);
                 
-                padx1 = max(0,1-x1);
-                padx2 = max(0,x2-Camera.Resolution(2));
-                pady1 = max(0,1-y1);
-                pady2 = max(0,y2-Camera.Resolution(1));
-                
                 for p = 1:size(pose,1)
                     im_file = [im_dir sprintf('%1d_%04d.jpg',c,ind(p))];
                     if ~exist(im_file,'file')
-                        im = da.getFrame(ind(p));
-                        im_crop = uint8(zeros(y2-y1+1,x2-x1+1,3));
+                        x1 = bbox(p,1);
+                        x2 = bbox(p,2);
+                        y1 = bbox(p,3);
+                        y2 = bbox(p,4);
+                        padx1 = max(0,1-x1);
+                        padx2 = max(0,x2-Camera.Resolution(2));
+                        pady1 = max(0,1-y1);
+                        pady2 = max(0,y2-Camera.Resolution(1));
                         x1_c = padx1+1;
                         x2_c = x2-x1+1-padx2;
                         y1_c = pady1+1;
@@ -113,6 +115,8 @@ for s = S
                         x2_o = x2-padx2;
                         y1_o = y1+pady1;
                         y2_o = y2-pady2;
+                        im = da.getFrame(ind(p));
+                        im_crop = uint8(zeros(y2-y1+1,x2-x1+1,3));
                         im_crop(y1_c:y2_c,x1_c:x2_c,:) = im(y1_o:y2_o,x1_o:x2_o,:);
                         imwrite(im_crop,im_file);
                     end
@@ -179,21 +183,22 @@ for s = S
                     cc = [cc; reshape(X,[1 numel(X)])];  %#ok
 
                     proj = Camera.project(Features{1}.toPositions(pose(p,:),posSkel));
+                    
+                    minx = min(proj(1:2:33));
+                    maxx = max(proj(1:2:33));
+                    miny = min(proj(2:2:34));
+                    maxy = max(proj(2:2:34));
+                    rx = max(abs([minx,maxx] - Camera.c(1)));
+                    ry = max(abs([miny,maxy] - Camera.c(2)));
+                    r = max(rx,ry);
+                    bbox(p,1) = round(Camera.c(1) - r);
+                    bbox(p,2) = round(Camera.c(1) + r);
+                    bbox(p,3) = round(Camera.c(2) - r);
+                    bbox(p,4) = round(Camera.c(2) + r);
+                    proj(1:2:33) = proj(1:2:33) - bbox(p,1) + 1;
+                    proj(2:2:34) = proj(2:2:34) - bbox(p,3) + 1;
                     cp = [cp; proj'];  %#ok
                 end
-                minx = min(min(cp(:,1:2:33)));
-                maxx = max(max(cp(:,1:2:33)));
-                miny = min(min(cp(:,2:2:34)));
-                maxy = max(max(cp(:,2:2:34)));
-                rx = max(abs([minx,maxx] - Camera.c(1)));
-                ry = max(abs([miny,maxy] - Camera.c(2)));
-                r = max(rx,ry);
-                x1 = round(Camera.c(1) - r);
-                x2 = round(Camera.c(1) + r);
-                y1 = round(Camera.c(2) - r);
-                y2 = round(Camera.c(2) + r);
-                cp(:,1:2:33) = cp(:,1:2:33) - x1 + 1;
-                cp(:,2:2:34) = cp(:,2:2:34) - y1 + 1;
                 
                 if c == 1
                     sz = size(coord_c,2);
@@ -209,23 +214,23 @@ for s = S
                 vidfeat = H36MRGBVideoFeature();
                 da = vidfeat.serializer(Sequence);
                 assert(da.Reader.NumberOfFrames >= size(pose,1));
-                
                 assert(da.Reader.Height == Camera.Resolution(1));
                 assert(da.Reader.Width == Camera.Resolution(2));
                 
                 im_dir = [im_root sprintf('%02d/%02d/%1d/',s,a,b)];
                 makedir(im_dir);
                 
-                padx1 = max(0,1-x1);
-                padx2 = max(0,x2-Camera.Resolution(2));
-                pady1 = max(0,1-y1);
-                pady2 = max(0,y2-Camera.Resolution(1));
-                
                 for p = 1:size(pose,1)
                     im_file = [im_dir sprintf('%1d_%04d.jpg',c,ind(p))];
                     if ~exist(im_file,'file')
-                        im = da.getFrame(ind(p));
-                        im_crop = uint8(zeros(y2-y1+1,x2-x1+1,3));
+                        x1 = bbox(p,1);
+                        x2 = bbox(p,2);
+                        y1 = bbox(p,3);
+                        y2 = bbox(p,4);
+                        padx1 = max(0,1-x1);
+                        padx2 = max(0,x2-Camera.Resolution(2));
+                        pady1 = max(0,1-y1);
+                        pady2 = max(0,y2-Camera.Resolution(1));
                         x1_c = padx1+1;
                         x2_c = x2-x1+1-padx2;
                         y1_c = pady1+1;
@@ -234,6 +239,8 @@ for s = S
                         x2_o = x2-padx2;
                         y1_o = y1+pady1;
                         y2_o = y2-pady2;
+                        im = da.getFrame(ind(p));
+                        im_crop = uint8(zeros(y2-y1+1,x2-x1+1,3));
                         im_crop(y1_c:y2_c,x1_c:x2_c,:) = im(y1_o:y2_o,x1_o:x2_o,:);
                         imwrite(im_crop,im_file);
                     end
