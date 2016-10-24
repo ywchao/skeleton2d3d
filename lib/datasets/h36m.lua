@@ -253,8 +253,8 @@ function H36MDataset:get(idx, train)
       if torch.uniform() <= .5 then
         im = img.flip(im)
         hm = img.flip(img.shuffleLR(hm,self.jointType))
-        -- repos = geometry.flip(geometry.shuffleLR(repos,self.jointType))
-        -- trans = geometry.flip(trans:view(1,3)):view(3)
+        repos = geometry.flip(geometry.shuffleLR(repos,self.jointType))
+        trans = geometry.flip(trans:view(1,3)):view(3)
         proj = geometry.shuffleLR(proj,self.jointType)
         local ind = proj:eq(0)
         proj[{{},1}] = self.outputRes - proj[{{},1}] + 1
