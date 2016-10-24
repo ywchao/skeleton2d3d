@@ -325,7 +325,7 @@ function Trainer:predict(loaders, split)
 
     if self.opt.hg then
       if not poses then
-        poses = torch.FloatTensor(size, unpack(sample.proj[1]:size():totable()))
+        poses = torch.FloatTensor(size, unpack(sample.repos[1]:size():totable()))
       end
       if not repos then
         repos = torch.FloatTensor(size, unpack(output[2][1]:size():totable()))
@@ -339,7 +339,7 @@ function Trainer:predict(loaders, split)
       if not proj then
         proj = torch.FloatTensor(size, unpack(output[5][1]:size():totable()))
       end
-      poses[i]:copy(sample.proj[1])
+      poses[i]:copy(sample.repos[1] + sample.trans[1]:view(1,3):expand(sample.repos[1]:size()))
       repos[i]:copy(output[2]:float()[1])
       trans[i]:copy(output[3]:float()[1])
       focal[i]:copy(output[4]:float()[1])
@@ -349,7 +349,9 @@ function Trainer:predict(loaders, split)
       local hmap_path = paths.concat(self.opt.save,'hmap_' .. split)
       local hmap_file = paths.concat(hmap_path, string.format("%05d.mat" % index[1]))
       util.makedir(hmap_path)
-      matio.save(hmap_file, {hmap = output[1]:float()[1]})
+      if not paths.filep(hmap_file) then
+        matio.save(hmap_file, {hmap = output[1]:float()[1]})
+      end
     else
       if not poses then
         poses = torch.FloatTensor(size, unpack(sample.repos[1]:size():totable()))

@@ -208,7 +208,12 @@ function H36MDataset:get(idx, train)
   local im, repos, trans, focal, proj
   local pose_w, pose_h, pose_c
   if self.hg then
-    cam = torch.random(1,4)
+    local cam
+    if train then
+      cam = torch.random(1,4)
+    else
+      cam = (idx - 1) % 4 + 1
+    end
     im = self:_loadImage(idx, cam)
     -- Get resizing factor
     local factor = self.outputRes / ((im:size(2)+im:size(3))/2)
