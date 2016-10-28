@@ -2,12 +2,15 @@
 % expID = 'res-64-t1'; mode = 0;
 % expID = 'res-64-t2'; mode = 0;
 % expID = 'res-64-t3'; mode = 0;
-% expID = 'hg-256-res-64-hgfix-pred'; mode = 1;
+% expID = 'hg-256-res-64-hg-pred'; mode = 1;
 
 % expID = 'hg-256-res-64-hgfix'; mode = 1;
 % expID = 'hg-256-res-64-hgfix-llprior-w0.001'; mode = 1;
 % expID = 'hg-256-res-64-hgfix-llprior-w1'; mode = 1;
-% expID = 'hg-256-res-64-s3fix-proj-w0.00001'; mode = 1;
+% expID = 'hg-256-res-64-s3fix-hg-proj-w0.00001'; mode = 1;
+% expID = 'hg-256-res-64-s3fix-s3-proj-w0'; mode = 1;
+% expID = 'hg-256-res-64-s3fix-s3-proj-w0.1'; mode = 1;
+% expID = 'hg-256-res-64-s3fix-s3-proj-w100'; mode = 1;
 
 % split = 'train';
 % split = 'val';
@@ -136,7 +139,7 @@ for i = run
         end
     end
     
-    % draw heamap
+    % draw heatmap
     [im, ~, ~, ~] = dataset_hg.get(i);
     im = permute(im, [2 3 1]);
     if mode == 0
@@ -182,7 +185,6 @@ for i = run
     minz = -1000; maxz = 1000;
     axis([minx maxx miny maxy minz maxz]);
     set(gca,'ZDir','reverse');
-    % view([35,30]);
     view([6,10]);
     
     % show 3D skeleton (view 2)
@@ -200,15 +202,8 @@ for i = run
     minz = -1000; maxz = 1000;
     axis([minx maxx miny maxy minz maxz]);
     set(gca,'ZDir','reverse');
-    % view([35,30]);
-    % view([152,24]);
     view([85,10]);
 
-    % Show limb length
-    % conn = [ 2, 1; 3, 1; 4, 2; 5, 3; 6, 4; 7, 5; 8, 2; 9, 3;10, 8;11, 9;12,10;13,11];
-    % conn = joints(conn);
-    % sqrt(sum((pred(:,conn(:,1)) - pred(:,conn(:,2))).^2,1));
-    
     set(gcf,'PaperPositionMode','auto');
     print(gcf,vis_file,'-dpng','-r0');
 end

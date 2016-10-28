@@ -2,7 +2,8 @@ figure(1);
 
 % choose experiment
 
-dataset = 'penn-crop';
+% dataset = 'h36m';
+% dataset = 'penn-crop';
 
 % exp_name = 'hg-256-res-64-hgfix';
 % epoch_size = 4921;  clr = 'r';
@@ -16,27 +17,63 @@ dataset = 'penn-crop';
 % maxy13 = 1;   maxy23 = 1;
 % miny13 = 0;   miny23 = 0;
 
-% exp_name = 'hg-256-res-64-s3fix-proj-w1';
-% epoch_size = 13121;  clr = 'y';
-% exp_name = 'hg-256-res-64-s3fix-proj-w0.001';
+% exp_name = 'hg-256-res-64-s3fix-hg-proj-w0.001';
 % epoch_size = 13121;  clr = 'r';
-% exp_name = 'hg-256-res-64-s3fix-proj-w0.0001';
+% exp_name = 'hg-256-res-64-s3fix-hg-proj-w0.0001';
 % epoch_size = 13121;  clr = 'g';
-% exp_name = 'hg-256-res-64-s3fix-proj-w0.00001';
+% exp_name = 'hg-256-res-64-s3fix-hg-proj-w0.00001';
 % epoch_size = 13121;  clr = 'b';
-% exp_name = 'hg-256-res-64-s3fix-proj-w0.000001';
+% exp_name = 'hg-256-res-64-s3fix-hg-proj-w0.000001';
 % epoch_size = 13121;  clr = 'c';
-% exp_name = 'hg-256-res-64-s3fix-proj-w0.0000001';
-% epoch_size = 13121;  clr = 'm';
-% exp_name = 'hg-256-res-64-s3fix-proj-w0';
-% epoch_size = 13121;  clr = 'r';
+% exp_name = 'hg-256-res-64-s3fix-hg-proj-w0';
+% epoch_size = 13121;  clr = 'k';
 
-% maxy11 = 20;  maxy21 = 20;
+% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0';
+% epoch_size = 13121;  clr = 'k';
+% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0.000001';
+% epoch_size = 13121;  clr = 'b';
+% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0.00001';
+% epoch_size = 13121;  clr = 'c';
+% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0.0001';
+% epoch_size = 13121;  clr = 'g';
+% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0.001';
+% epoch_size = 13121;  clr = 'r';
+% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0.01';
+% epoch_size = 13121;  clr = 'g';
+% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0.1';
+% epoch_size = 13121;  clr = 'b';
+% exp_name = 'hg-256-res-64-s3fix-s3-proj-w1';
+% epoch_size = 13121;  clr = 'c';
+% exp_name = 'hg-256-res-64-s3fix-s3-proj-w10';
+% epoch_size = 13121;  clr = 'm';
+% exp_name = 'hg-256-res-64-s3fix-s3-proj-w100';
+% epoch_size = 13121;  clr = 'k';
+
+% exp_name = 'hg-256-res-64-fts3-s3fix-hg-proj-w0';     epoch_size = 13121;  clr = 'k';
+% exp_name = 'hg-256-res-64-fts3-s3fix-hg-proj-w1e-6';  epoch_size = 13121;  clr = 'r';
+% exp_name = 'hg-256-res-64-fts3-s3fix-hg-proj-w1e-5';  epoch_size = 13121;  clr = 'g';
+% exp_name = 'hg-256-res-64-fts3-s3fix-hg-proj-w1e-4';  epoch_size = 13121;  clr = 'b';
+% exp_name = 'hg-256-res-64-fts3-s3fix-hg-proj-w1e-3';  epoch_size = 13121;  clr = 'c';
+
+% maxy11 = 50;  maxy21 = 50;
 % maxy12 = 5;   maxy22 = 5;
 % maxy13 = 1;   maxy23 = 1;
 % miny13 = 0.5; miny23 = 0.5;
 
-disp_int = 1000;
+% exp_name = 'hg-256-res-64-h36m-hgfix-w0';
+% epoch_size = 2276;  clr = 'r';
+% exp_name = 'hg-256-res-64-h36m-hgfix-w0.001';
+% epoch_size = 2276;  clr = 'g';
+% exp_name = 'hg-256-res-64-h36m-hgfix-w1';
+% epoch_size = 2276;  clr = 'b';
+
+% maxy11 = 3e5;  maxy21 = 3e5;
+% maxy12 = 300;  maxy22 = 300;
+% maxy13 = 20;   maxy23 = 20;
+% miny13 = 0;    miny23 = 0;
+
+% disp_int = 1000;
+% disp_int = 200;
 
 % set parameters
 max_epoch = 10;
