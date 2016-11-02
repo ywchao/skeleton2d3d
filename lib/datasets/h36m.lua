@@ -192,7 +192,7 @@ function H36MDataset:_getCenterScale(im)
   local h = im:size(2)
   local x = (w+1)/2
   local y = (h+1)/2
-  local scale = ((w+h)/2)/200
+  local scale = math.max(w,h)/200
   -- Small adjustment so cropping is less likely to take feet out
   -- y = y + scale * 15
   -- scale = scale * 1.25
@@ -207,6 +207,8 @@ end
 function H36MDataset:get(idx, train)
   local im, repos, trans, focal, proj
   local pose_w, pose_h, pose_c
+  local center, scale = 0, 0
+  local gtpts = torch.zeros(self:_loadPoseProject(1, 1):size())
   if self.hg then
     local cam
     if train then
@@ -215,12 +217,12 @@ function H36MDataset:get(idx, train)
       cam = (idx - 1) % 4 + 1
     end
     im = self:_loadImage(idx, cam)
-    -- Get resizing factor
-    local factor = self.outputRes / ((im:size(2)+im:size(3))/2)
-    focal = self:_loadFocal(cam):mean(1) * factor
     -- Transform image
-    local center, scale = unpack(self:_getCenterScale(im))
+    center, scale = unpack(self:_getCenterScale(im))
     im = img.crop(im, center, scale, 0, self.inputRes)
+    -- Scale focal length
+    local factor = self.outputRes / (scale * 200)
+    focal = self:_loadFocal(cam):mean(1) * factor
     -- Load pose
     pose_c = self:_loadPoseCamera(idx, cam)
     repos, trans = self:_normalizePose(pose_c)
@@ -229,6 +231,8 @@ function H36MDataset:get(idx, train)
     for i = 1, proj:size(1) do
       proj[i] = img.transform(proj[i], center, scale, 0, self.outputRes, false, false)
     end
+    -- Load gt points
+    gtpts = self:_loadPoseProject(idx, cam)
   else
     pose_w = self:_loadPoseWorld(idx)
     pose_h = self:_normalizePose(pose_w)
@@ -285,6 +289,9 @@ function H36MDataset:get(idx, train)
     proj = proj,
     mean = torch.zeros(proj:size(1)),
     -- mean = self.mean,
+    gtpts = gtpts,
+    center = center,
+    scale = scale
   }
 end
 

@@ -110,7 +110,10 @@ function Trainer:train(epoch, loaders)
 
     -- Compute mean per joint position error (MPJPE)
     if self.nOutput == 1 then output = {output} end
-    local pred, err, acc
+    local pred, err, acc, ne, na
+    local center, scale = sample.center, sample.scale
+    local gtpts = sample.gtpts
+    local ref = self:getRef(scale)
     if self.opt.dataset == 'h36m' then
       repos = repos:float()
       if self.opt.hg then
@@ -118,22 +121,27 @@ function Trainer:train(epoch, loaders)
       else
         pred = output[1]:float()
       end
-      err = torch.csub(repos,pred):pow(2):sum(3):sqrt():mean(2):mean()
+      err = torch.csub(repos,pred):pow(2):sum(3):sqrt():sum()
       acc = 0/0
+      num = pred:numel()/3
       -- store 2d error to acc for hg
       if self.opt.hg then
-        assert(self.opt.evalOut == 's3')
-        proj = proj:float()
-        pred = output[5]:float()
-        acc = torch.csub(proj,pred):pow(2):sum(3):sqrt():mean(2):mean()
+        if self.opt.evalOut == 's3' then pred = output[5]:float() end
+        if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
+        pred = self:getOrigCoord(pred,center,scale)
+        acc, na = self:_computeAccuracy(pred,gtpts,ref)
+        assert(na == num)
       end
     end
     if self.opt.dataset == 'penn-crop' then
-      proj = proj:float()
       if self.opt.evalOut == 's3' then pred = output[5]:float() end
       if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
-      err = self:_computeError(proj,pred)
-      acc = self:_computeAccuracy(proj,pred)
+      pred = self:getOrigCoord(pred,center,scale)
+      err, ne = self:_computeError(pred,gtpts,ref)
+      acc, na = self:_computeAccuracy(pred,gtpts,ref)
+      assert(ne == na)
+      err = err / ne
+      acc = acc / ne
     end
 
     -- Print and log
@@ -160,7 +168,7 @@ function Trainer:test(epoch, iter, loaders, split)
 
   local dataloader = loaders[split]
   local size = dataloader:sizeDataset()
-  local lossSum, errSum, accSum, N = 0.0, 0.0, 0.0, 0.0
+  local lossSum, errSum, accSum, numSum, N = 0.0, 0.0, 0.0, 0.0, 0.0
 
   print("=> Test on " .. split)
   xlua.progress(0, size)
@@ -218,7 +226,10 @@ function Trainer:test(epoch, iter, loaders, split)
       assert(input:size(1) == 1, 'batch size must be 1 with run({train=false})')
     end
     if self.nOutput == 1 then output = {output} end
-    local pred, err, acc
+    local pred, err, acc, num, ne, na
+    local center, scale = sample.center, sample.scale
+    local gtpts = sample.gtpts
+    local ref = self:getRef(scale)
     if self.opt.dataset == 'h36m' then
       repos = repos:float()
       if self.opt.hg then
@@ -226,18 +237,19 @@ function Trainer:test(epoch, iter, loaders, split)
       else
         pred = output[1]:float()
       end
-      err = torch.csub(repos,pred):pow(2):sum(3):sqrt():mean(2):mean()
+      err = torch.csub(repos,pred):pow(2):sum(3):sqrt():sum()
       acc = 0/0
+      num = pred:numel()/3
       -- store 2d error to acc for hg
       if self.opt.hg then
-        assert(self.opt.evalOut == 's3')
-        proj = proj:float()
-        pred = output[5]:float()
-        acc = torch.csub(proj,pred):pow(2):sum(3):sqrt():mean(2):mean()
+        if self.opt.evalOut == 's3' then pred = output[5]:float() end
+        if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
+        pred = self:getOrigCoord(pred,center,scale)
+        acc, na = self:_computeAccuracy(pred,gtpts,ref)
+        assert(na == num)
       end
     end
     if self.opt.dataset == 'penn-crop' then
-      proj = proj:float()
       if self.opt.hg then
         if self.opt.evalOut == 's3' then pred = output[5]:float() end
         if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
@@ -245,13 +257,17 @@ function Trainer:test(epoch, iter, loaders, split)
         assert(self.nOutput == 4)
         pred = output[4]:float()
       end
-      err = self:_computeError(proj,pred)
-      acc = self:_computeAccuracy(proj,pred)
+      pred = self:getOrigCoord(pred,center,scale)
+      err, ne = self:_computeError(pred,gtpts,ref)
+      acc, na = self:_computeAccuracy(pred,gtpts,ref)
+      assert(ne == na)
+      num = ne
     end
 
     lossSum = lossSum + loss
     errSum = errSum + err
     accSum = accSum + acc
+    numSum = numSum + num
     N = N + 1
 
     xlua.progress(i, size)
@@ -259,8 +275,8 @@ function Trainer:test(epoch, iter, loaders, split)
   self.model:training()
 
   local loss = lossSum / N
-  local err = errSum / N
-  local acc = accSum / N
+  local err = errSum / numSum
+  local acc = accSum / numSum
 
   -- Print and log
   local testTime = testTimer:time().real
@@ -352,6 +368,18 @@ function Trainer:predict(loaders, split)
       if not paths.filep(hmap_file) then
         matio.save(hmap_file, {hmap = output[1]:float()[1]})
       end
+      -- Save eval output
+      local eval_path = paths.concat(self.opt.save,'eval_' .. split)
+      local eval_file = paths.concat(eval_path, string.format("%05d.mat" % index[1]))
+      util.makedir(eval_path)
+      if not paths.filep(eval_file) then
+        local center, scale = sample.center, sample.scale
+        local pred
+        if self.opt.evalOut == 's3' then pred = output[5][j]:float() end
+        if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
+        local eval = self:getOrigCoord(pred,center,scale)[1]
+        matio.save(eval_file, {eval = eval})
+      end
     else
       if not poses then
         poses = torch.FloatTensor(size, unpack(sample.repos[1]:size():totable()))
@@ -397,32 +425,50 @@ function Trainer:predict(loaders, split)
       {poses = poses, repos = repos, trans = trans, focal = focal, proj = proj})
 end
 
-function Trainer:_computeError(target, output)
+function Trainer:getOrigCoord(pred, center, scale)
+  for i = 1, pred:size(1) do
+    for j = 1, pred:size(2) do
+      pred[i][j] = img.transform(pred[i][j], center[i], scale[i][1], 0,
+          self.opt.inputRes, true, false)
+    end
+  end
+  return pred
+end
+
+function Trainer:getRef(scale)
+  if self.opt.dataset == 'h36m' then
+    return 200 * scale:view(-1)
+  end
+  if self.opt.dataset == 'penn-crop' then
+    return 200 * scale:view(-1) / 1.25
+  end
+end
+
+function Trainer:_computeError(output, target, ref)
 -- target: N x d x 2
 -- output: N x d x 2
+-- ref:    N x 1
   local e, n = {}, {}
   for i = 1, target:size(1) do
     e[i], n[i] = 0.0, 0.0
     for j = 1, target:size(2) do
-      if target[i][j][1] > 0 then
-        local p1 = target:select(2,j)
-        local p2 = output:select(2,j)
+      if target[i][j][1] ~= 0 and target[i][j][2] ~= 0 then
+        local p1 = target[i][j]
+        local p2 = output[i][j]
         n[i] = n[i] + 1
-        e[i] = e[i] + torch.csub(p1,p2):pow(2):sum(2):sqrt()[1][1]
+        e[i] = e[i] + torch.dist(p1,p2) / ref[i]
       end
     end
   end
-  return torch.cdiv(torch.Tensor(e),torch.Tensor(n)):mean()
+  -- TODO: the code above can be made even simpler
+  return torch.Tensor(e):sum(), torch.Tensor(n):sum()
 end
 
-function Trainer:_computeAccuracy(target, output)
+function Trainer:_computeAccuracy(output, target, ref)
 -- target: N x d x 2
 -- output: N x d x 2
-  local jntIdxs
-  if self.opt.jointType == 'penn-crop' then
-    jntIdxs = {4,5,6,7,8,9,10,11,12,13}
-  end
-  return eval.coordAccuracy(output,target,nil,jntIdxs,self.opt.inputRes)
+-- ref:    N x 1
+  return eval.coordAccuracy(output, target, 0.05, nil, self.opt.inputRes, ref)
 end
 
 return M.Trainer

@@ -92,6 +92,9 @@ function DataLoader:run(kwargs)
                local hmap, hmapSize
                local proj, projSize
                local mean, meanSize
+               local gtpts, gtptsSize
+               local center
+               local scale
                for i, idx in ipairs(indices:totable()) do
                   local sample = _G.dataset:get(idx, kwargs.train)
                   if not input then
@@ -126,6 +129,16 @@ function DataLoader:run(kwargs)
                      meanSize = sample.mean:size():totable()
                      mean = torch.FloatTensor(sz, unpack(meanSize))
                   end
+                  if not gtpts then
+                     gtptsSize = sample.gtpts:size():totable()
+                     gtpts = torch.FloatTensor(sz, unpack(gtptsSize))
+                  end
+                  if not center then
+                     center = torch.FloatTensor(sz, 2)
+                  end
+                  if not scale then
+                     scale = torch.FloatTensor(sz, 1)
+                  end
                   input[i] = sample.input
                   repos[i] = sample.repos
                   trans[i] = sample.trans
@@ -133,6 +146,9 @@ function DataLoader:run(kwargs)
                   hmap[i] = sample.hmap
                   proj[i] = sample.proj
                   mean[i] = sample.mean
+                  gtpts[i] = sample.gtpts
+                  center[i] = sample.center
+                  scale[i] = sample.scale
                end
                if _G.dataset.hg and not kwargs.train then
                   input = input:view(2, unpack(imageSize))
@@ -147,6 +163,9 @@ function DataLoader:run(kwargs)
                   hmap = hmap,
                   proj = proj,
                   mean = mean,
+                  gtpts = gtpts,
+                  center = center,
+                  scale = scale,
                }
             end,
             function(_sample_)

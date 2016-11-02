@@ -1,3 +1,5 @@
+-- TODO: update following preprocess.py and penn.py
+
 require 'hdf5'
 require 'image'
 
@@ -15,13 +17,12 @@ function PennCropDataset:__init(opt, split)
   -- Load annotation
   annot_file = paths.concat(opt.data, split .. '.h5')
   self.ind2sub = hdf5.open(annot_file,'r'):read('ind2sub'):all()
-  self.visible = hdf5.open(annot_file,'r'):read('visible'):all()
   self.part = hdf5.open(annot_file,'r'):read('part'):all()
   -- Get input and output resolution
   self.inputRes = opt.inputResHG
   self.outputRes = opt.inputRes
   -- Get number of joints
-  self.numPt = self.visible:size(2)
+  self.numPt = self.part:size(2)
   -- Check if the model contains hourglass for pose estimation
   self.hg = opt.hg
   -- Get mean limb length
@@ -84,10 +85,9 @@ function PennCropDataset:get(idx, train)
 
   -- Get projection
   local pts = self.part[idx]
-  local vis = self.visible[idx]
   local proj = torch.zeros(pts:size())
   for i = 1, pts:size(1) do
-    if vis[i] == 1 then
+    if pts[i][1] ~= 0 and pts[i][2] ~= 0 then
       proj[i] = img.transform(pts[i], center, scale, 0, self.outputRes, false, false)
     end
   end
@@ -95,10 +95,13 @@ function PennCropDataset:get(idx, train)
   -- Generate heatmap
   local hm = torch.zeros(pts:size(1), self.outputRes, self.outputRes)
   for i = 1, pts:size(1) do
-    if vis[i] == 1 then
+    if pts[i][1] ~= 0 and pts[i][2] ~= 0 then
       img.drawGaussian(hm[i], torch.round(proj[i]), 2)
     end
   end
+
+  -- Load gt points
+  gtpts = pts
 
   -- Augment data
   if self.hg then
@@ -117,7 +120,7 @@ function PennCropDataset:get(idx, train)
       im = img.crop(im, {(inp+1)/2,(inp+1)/2}, inp*s/200, r, inp)
       hm = img.crop(hm, {(out+1)/2,(out+1)/2}, out*s/200, r, out)
       for i = 1, pts:size(1) do
-        if vis[i] == 1 then
+        if pts[i][1] ~= 0 and pts[i][2] ~= 0 then
           proj[i] = img.transform(proj[i], {(out+1)/2,(out+1)/2}, out*s/200, r, out, false, false)
         end
       end
@@ -154,6 +157,9 @@ function PennCropDataset:get(idx, train)
     hmap = hm,
     proj = proj,
     mean = self.mean,
+    gtpts = gtpts,
+    center = center,
+    scale = scale,
   }
 end
 
