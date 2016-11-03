@@ -291,7 +291,7 @@ function H36MDataset:get(idx, train)
     -- mean = self.mean,
     gtpts = gtpts,
     center = center,
-    scale = scale
+    scale = scale,
   }
 end
 
