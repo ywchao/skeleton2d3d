@@ -75,17 +75,18 @@ function M.setup(opt, checkpoint)
         criterion.weights[4] = 0
       end
       if nOutput == 5 then
-        criterion.weights[1] = 1
+        criterion.weights[1] = opt.weightHMap
         criterion.weights[5] = opt.weightProj
       end
       if nOutput == 6 then
-        criterion.weights[1] = 1
+        criterion.weights[1] = opt.weightHMap
         criterion.weights[5] = opt.weightProj
         criterion.weights[6] = opt.weightLLPrior
       end
     end
   else
     assert(nOutput == 1 or nOutput == 3 or nOutput == 4)
+    assert(opt.weightHMap == 1)
     if nOutput == 3 then
       criterion.weights[1] = 1
       criterion.weights[2] = opt.weightTrans
