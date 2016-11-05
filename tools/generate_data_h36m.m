@@ -21,7 +21,7 @@ ind2sub = int32(zeros(0,4));
 coord_w = single(zeros(0,51));
 coord_c = single(zeros(4,0,51));
 coord_p = single(zeros(4,0,34));
-focal = single(zeros(0,2));
+focal = single(zeros(4,2));
 for s = S
     for a = 2:16
         for b = 1:2
@@ -46,7 +46,13 @@ for s = S
                 Sequence = H36MSequence(s, a, b, c);
                 Camera = Sequence.getCamera();
                 
-                focal = [focal; Camera.f];  %#ok
+                % assume same camera has same parameters for different sequences 
+                if focal(c,1) == 0 && focal(c,2) == 0
+                    focal(c,:) = Camera.f;
+                else
+                    assert(abs(focal(c,1) - Camera.f(1)) < 1e-4);
+                    assert(abs(focal(c,2) - Camera.f(2)) < 1e-4);
+                end
                 
                 % get projection and crop box
                 cc = single(zeros(0,51));
@@ -146,7 +152,7 @@ ind2sub = int32(zeros(0,4));
 coord_w = single(zeros(0,51));
 coord_c = single(zeros(4,0,51));
 coord_p = single(zeros(4,0,34));
-focal = single(zeros(0,2));
+focal = single(zeros(4,2));
 for s = S
     for a = 2:16
         for b = 1:2
@@ -171,7 +177,13 @@ for s = S
                 Sequence = H36MSequence(s, a, b, c);
                 Camera = Sequence.getCamera();
                 
-                focal = [focal; Camera.f];  %#ok
+                % assume same camera has same parameters for different sequences 
+                if focal(c,1) == 0 && focal(c,2) == 0
+                    focal(c,:) = Camera.f;
+                else
+                    assert(abs(focal(c,1) - Camera.f(1)) < 1e-4);
+                    assert(abs(focal(c,2) - Camera.f(2)) < 1e-4);
+                end
                 
                 % get projection and crop box
                 cc = single(zeros(0,51));

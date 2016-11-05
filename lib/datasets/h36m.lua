@@ -260,9 +260,9 @@ function H36MDataset:get(idx, train)
         repos = geometry.flip(geometry.shuffleLR(repos,self.jointType))
         trans = geometry.flip(trans:view(1,3)):view(3)
         proj = geometry.shuffleLR(proj,self.jointType)
-        local ind = proj:eq(0)
         proj[{{},1}] = self.outputRes - proj[{{},1}] + 1
-        proj[ind] = 0
+        gtpts = geometry.shuffleLR(gtpts,self.jointType)
+        gtpts[{{},1}] = (center[1]*2-1) - gtpts[{{},1}] + 1
       end
     else
       -- Add flipped image
