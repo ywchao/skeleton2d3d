@@ -8,7 +8,7 @@ fi
 
 CUDA_VISIBLE_DEVICES=$gpu_id th main.lua \
   -expID hg-256-res-64-h36m-hgfix-w1 \
-  -nEpochs 10 \
+  -nEpochs 50 \
   -batchSize 16 \
   -netType hg-256-res-64 \
   -penn \
