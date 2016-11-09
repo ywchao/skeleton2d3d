@@ -11,6 +11,7 @@ classdef h36m
         coord_p
         focal
         jointType
+        numPt
         hg
         img
     end
@@ -39,6 +40,8 @@ classdef h36m
             else
                 obj.jointType = 'h36m';
             end
+            % Get number of joints
+            obj.numPt = size(obj.coord_w,2) / 3;
             % check if the model contains hourglass for pose estimation
             obj.hg = opt.hg;
             % remove corrupted images
@@ -62,6 +65,12 @@ classdef h36m
         % get image path
         ind = getPennInd(obj, dim);
         
+        % load 3d pose in camera coordinates
+        coord_c = loadPoseCamera(obj, idx, cam);
+        
+        % load focal length
+        focal = loadFocal(obj, cam);
+        
         % get image path
         pa = imgpath(obj, idx, cam);
         
@@ -74,6 +83,6 @@ classdef h36m
         % get dataset size
         out = size(obj);
         
-        [input, proj, center, scale] = get(obj, idx, cam);
+        [input, repos, trans, focal, proj] = get(obj, idx, cam);
     end
 end

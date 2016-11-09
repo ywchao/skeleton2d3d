@@ -1,7 +1,6 @@
 
 % add path and load data
 shape_root = './shapeconvex/release/';
-addpath([shape_root 'ssr']);
 addpath([shape_root 'utils']);
 shape_data = load([shape_root 'data/human/shapeDict.mat']);
 
@@ -10,7 +9,7 @@ shape_data = load([shape_root 'data/human/shapeDict.mat']);
 
 split = 'val';
 
-interval = 10;
+interval = 101;
 
 % set body joint config
 pa = [0 1 2 3 1 5 6 1 8 8 10 11 8 13 14];
@@ -23,6 +22,7 @@ partcolor = {'b','b','r','r','b','g','g','b','b','b','r','r','b','g','g'};
 % set directories
 pose_root = ['./shapeconvex/res_h36m_' exp_name '/' split '/'];
 save_root = ['./shapeconvex/vis_h36m_' exp_name '/' split '/'];
+makedir(save_root);
 
 % init dataset
 dataset = load(['./data/h36m/' split '.mat']);
@@ -33,21 +33,18 @@ set(gcf,'Position',[2 26 640 320]);
 % reading annotations
 fprintf('visualizing shapeconvex on h36m ... \n');
 for i = 1:interval:size(dataset.ind2sub,1)
-    fprintf('%05d/%05d\n',i,size(dataset.ind2sub,1));
+    tic_print(sprintf('%05d/%05d\n',i,size(dataset.ind2sub,1)));
     sid = dataset.ind2sub(i,1);
     aid = dataset.ind2sub(i,2);
     bid = dataset.ind2sub(i,3);
     fid = dataset.ind2sub(i,4);
     cam = mod(i-1,4)+1;
-    % set vis dir
-    save_dir = sprintf('%s/%02_%02d_%1d/',save_root,sid,aid,bid);
-    makedir(save_dir);
     % skip if vis file exists
-    save_file = sprintf('%s/%1d_%04d.jpg',save_dir,cam,fid);
+    save_file = sprintf('%s/%02d_%02d_%1d_%04d_%1d.png',save_root,sid,aid,bid,fid,cam);
     if exist(save_file,'file')
         continue
     end
-    % load heatmap
+    % load 2D prediction
     pred_file = sprintf('./exp/h36m/%s/eval_%s/%05d.mat',exp_name,split,i);
     pred = load(pred_file);
     pred = pred.eval;
@@ -102,6 +99,7 @@ for i = 1:interval:size(dataset.ind2sub,1)
     axis on;
     grid on;
     % save vis to file
+    set(gcf,'PaperPositionMode','auto');
     print(gcf,save_file,'-dpng','-r0');
 end
 fprintf('\n');

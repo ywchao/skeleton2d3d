@@ -38,7 +38,7 @@ parfor i = 1:dataset.size()
     end
     fprintf('%05d/%05d  ',i,dataset.size());
     tt = tic;
-    % load heatmap
+    % load 2D prediction
     pred_file = sprintf('./exp/h36m/%s/eval_%s/%05d.mat',exp_name,split,i);
     pred = load(pred_file);
     pred = pred.eval;
