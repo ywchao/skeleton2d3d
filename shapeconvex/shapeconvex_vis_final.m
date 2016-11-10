@@ -1,8 +1,8 @@
 
-% exp_name = 'hg-256-res-64-h36m-fthg';           mode = 0;
-% exp_name = 'hg-256-res-64-h36m-fthg-hgfix-w1';  mode = 1;
 % exp_name = 'hg-256-res-64-h36m-hg-pred';        mode = 0;
 % exp_name = 'hg-256-res-64-h36m-hgfix-w1';       mode = 1;
+% exp_name = 'hg-256-res-64-h36m-fthg-hg-pred';   mode = 0;
+% exp_name = 'hg-256-res-64-h36m-fthg-hgfix-w1';  mode = 1;
 
 split = 'val';
 
@@ -11,7 +11,7 @@ interval = 101;
 % set directories
 if mode == 0
     pose_root = ['./shapeconvex/res_h36m_' exp_name '/' split '/'];
-    save_root = ['./shapeconvex/vis_h36m_' exp_name '_scale/' split '/'];
+    save_root = ['./shapeconvex/vis_h36m_' exp_name '_final/' split '/'];
 end
 if mode == 1
     preds_file = ['./exp/h36m/' exp_name '/preds_' split '.mat'];

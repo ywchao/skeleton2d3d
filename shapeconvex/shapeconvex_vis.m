@@ -4,8 +4,8 @@ shape_root = './shapeconvex/release/';
 addpath([shape_root 'utils']);
 shape_data = load([shape_root 'data/human/shapeDict.mat']);
 
-% exp_name = 'hg-256-res-64-h36m-fthg';
 % exp_name = 'hg-256-res-64-h36m-hg-pred';
+% exp_name = 'hg-256-res-64-h36m-fthg-hg-pred';
 
 split = 'val';
 

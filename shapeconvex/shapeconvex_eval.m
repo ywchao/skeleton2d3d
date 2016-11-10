@@ -1,8 +1,8 @@
 
-% exp_name = 'hg-256-res-64-h36m-fthg';           mode = 0;
-% exp_name = 'hg-256-res-64-h36m-fthg-hgfix-w1';  mode = 1;
 % exp_name = 'hg-256-res-64-h36m-hg-pred';        mode = 0;
 % exp_name = 'hg-256-res-64-h36m-hgfix-w1';       mode = 1;
+% exp_name = 'hg-256-res-64-h36m-fthg-hg-pred';   mode = 0;
+% exp_name = 'hg-256-res-64-h36m-fthg-hgfix-w1';  mode = 1;
 
 split = 'val';
 
