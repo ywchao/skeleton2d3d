@@ -64,7 +64,9 @@ for i = 1:size(dataset.ind2sub,1)
         pose = load(pose_file);
         S = pose.S;
         % convert to penn format
-        joints = [9 13 10 14 11 15 12 5 2 6 3 7 4];
+        % joints = [9 13 10 14 11 15 12 5 2 6 3 7 4];
+        % pred = S(:,joints)';
+        joints = [10,15,12,16,13,17,14,2,5,3,6,4,7];
         pred = S(:,joints)';
         % scale pred to minimize error with length prior
         p1 = pred(conn(:,1),:);

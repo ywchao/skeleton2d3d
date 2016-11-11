@@ -2,7 +2,8 @@
 % add path and load data
 shape_root = './shapeconvex/release/';
 addpath([shape_root 'utils']);
-shape_data = load([shape_root 'data/human/shapeDict.mat']);
+% shape_data = load([shape_root 'data/human/shapeDict.mat']);
+shape_data = load('shapeconvex/shapeDict_h36m.mat');
 
 % exp_name = 'hg-256-res-64-h36m-hg-pred';
 % exp_name = 'hg-256-res-64-h36m-fthg-hg-pred';
