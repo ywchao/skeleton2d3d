@@ -7,6 +7,7 @@ addpath('H36M_utils/external_utils/lawrennd-mocap');
 addpath('H36M_utils/external_utils/xml_io_tools');
 
 addpath('common');
+addpath('paper');
 addpath('tools');
 
 addpath('shapeconvex');
