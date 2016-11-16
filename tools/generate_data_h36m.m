@@ -188,6 +188,7 @@ for s = S
                 % get projection and crop box
                 cc = single(zeros(0,51));
                 cp = single(zeros(0,34));
+                bbox = zeros(size(pose,1),4);
                 for p = 1:size(pose,1)
                     P = reshape(pose(p,:),[3 numel(pose(p,:))/3])';
                     N = size(P,1);
