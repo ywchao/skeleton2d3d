@@ -121,6 +121,9 @@ for i = 1:numel(run)
         anno.visibility(fid,8) && anno.visibility(fid,9);
     vis(9) = anno.visibility(fid,1) && anno.visibility(fid,2) && anno.visibility(fid,3);
     vis(11) = anno.visibility(fid,1);
+    % set coordinates of invisible joints to 0
+    %   do not use vis anymore, since the joint order has been changed
+    pose(:, vis == 0) = 0;
     % show2DPose(pose,pos2dSkel);
     padding = 0;
     pose = [pose zeros(1, padding)];  %#ok
@@ -131,7 +134,7 @@ for i = 1:numel(run)
     hold on
     grid on
     for j = 1:length(indices)
-        if vis(I(j)) == 0 || vis(J(j)) == 0
+        if vals(I(j),1) == 0 || vals(J(j),1) == 0
             continue
         end
         % modify with show part (3d geometrical thing)
