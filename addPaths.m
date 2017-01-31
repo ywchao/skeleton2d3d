@@ -11,3 +11,5 @@ addpath('paper');
 addpath('tools');
 
 addpath('shapeconvex');
+
+addpath('smplify');
