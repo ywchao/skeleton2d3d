@@ -77,7 +77,7 @@ for s = [1 5 6 7 8 9 11]
             FrameRate = 50;
             if ~exist(vis_file,'file')
                 % intialize video writer
-                v = VideoWriter(vis_file,'Uncompressed AVI');
+                v = VideoWriter(vis_file);
                 v.FrameRate = FrameRate;
                 % open new video
                 open(v);
