@@ -1,22 +1,11 @@
 
-% expID = 'res-64-t1'; mode = 0;
-% expID = 'res-64-t2'; mode = 0;
-% expID = 'res-64-t3'; mode = 0;
-% expID = 'hg-256-res-64-hg-pred'; mode = 1;
-
-% expID = 'hg-256-res-64-hgfix'; mode = 1;
-% expID = 'hg-256-res-64-hgfix-llprior-w0.001'; mode = 1;
-% expID = 'hg-256-res-64-hgfix-llprior-w1'; mode = 1;
-% expID = 'hg-256-res-64-s3fix-hg-proj-w0.00001'; mode = 1;
-% expID = 'hg-256-res-64-s3fix-s3-proj-w0'; mode = 1;
-% expID = 'hg-256-res-64-s3fix-s3-proj-w0.1'; mode = 1;
-% expID = 'hg-256-res-64-s3fix-s3-proj-w100'; mode = 1;
+exp_name = 'res-64';
 
 % split = 'train';
-% split = 'val';
+split = 'val';
 
 % set vis root
-vis_root = ['./outputs/vis_preds_penn/' expID '/' split '/'];
+vis_root = ['./outputs/vis_' exp_name '/penn_' split '/'];
 
 % load annotations
 ind2sub = hdf5read(['./data/penn-crop/' split '.h5'],'ind2sub');
@@ -27,7 +16,7 @@ visible = permute(visible,[2 1]);
 part = permute(part,[3 2 1]);
 
 % load predictions
-preds = load(['./exp/penn-crop/' expID '/preds_' split '.mat']);
+preds = load(['./exp/penn-crop/' exp_name '/preds_' split '.mat']);
 joints = [10,15,12,16,13,17,14,2,5,3,6,4,7];
 preds_ = zeros(size(preds.repos,1),17,3);
 preds_(:,joints,:) = preds.repos;
@@ -48,10 +37,8 @@ Features{1} = H36MPose3DPositionsFeature();
 opt.data = './data/penn-crop';
 opt.inputRes = 64;
 opt.inputResHG = 256;
-if mode == 0
-    opt.hg = false;
-    dataset = penn_crop(opt, split);
-end
+opt.hg = false;
+dataset = penn_crop(opt, split);
 opt.hg = true;
 dataset_hg = penn_crop(opt, split);
 
@@ -114,27 +101,25 @@ for i = run
     imshow(im); hold on;
     
     % draw annotation
-    if mode == 0
-        for child = 2:p_no
-            x1 = part(i,pa(child),1);
-            y1 = part(i,pa(child),2);
-            x2 = part(i,child,1);
-            y2 = part(i,child,2);
-            % skip invisible joints
-            if visible(i,child)
-                plot(x2, y2, 'o', ...
+    for child = 2:p_no
+        x1 = part(i,pa(child),1);
+        y1 = part(i,pa(child),2);
+        x2 = part(i,child,1);
+        y2 = part(i,child,2);
+        % skip invisible joints
+        if visible(i,child)
+            plot(x2, y2, 'o', ...
+                'color', partcolor{child}, ...
+                'MarkerSize', msize, ...
+                'MarkerFaceColor', partcolor{child});
+            if visible(i,pa(child))
+                plot(x1, y1, 'o', ...
                     'color', partcolor{child}, ...
                     'MarkerSize', msize, ...
                     'MarkerFaceColor', partcolor{child});
-                if visible(i,pa(child))
-                    plot(x1, y1, 'o', ...
-                        'color', partcolor{child}, ...
-                        'MarkerSize', msize, ...
-                        'MarkerFaceColor', partcolor{child});
-                    line([x1 x2], [y1 y2], ...
-                        'color', partcolor{child}, ...
-                        'linewidth',round(msize/2));
-                end
+                line([x1 x2], [y1 y2], ...
+                    'color', partcolor{child}, ...
+                    'linewidth',round(msize/2));
             end
         end
     end
@@ -142,33 +127,21 @@ for i = run
     % draw heatmap
     [im, ~, ~, ~] = dataset_hg.get(i);
     im = permute(im, [2 3 1]);
-    if mode == 0
-        [hm, ~, ~, ~] = dataset.get(i);
-    end
-    if mode == 1
-        hm_dir = ['./exp/penn-crop/' expID '/hmap_' split '/'];
-        hm_file = [hm_dir num2str(i,'%05d') '.mat'];
-        if exist(hm_file,'file')
-            hm = load(hm_file);
-            hm = hm.hmap;
-        end
-    end
+    [hm, ~, ~, ~] = dataset.get(i);
     if exist('hh','var')
         delete(hh);
     end
-    if exist('hm','var')
-        hh = subplot('Position',[0.03+1/4 0.05 1/4-0.06 0.9]);
-        inp64 = imresize(double(im),[64 64]) * 0.3;
-        colorHms = cell(size(hm,1),1);
-        for j = 1:size(hm,1)
-            colorHms{j} = libimg.colorHM(squeeze(hm(j,:,:)));
-            colorHms{j} = colorHms{j} * 255 * 0.7 + permute(inp64,[3 1 2]);
-        end
-        totalHm = libimg.compileImages(colorHms, 4, 4, 64);
-        totalHm = permute(totalHm,[2 3 1]);
-        totalHm = uint8(totalHm);
-        imshow(totalHm);
+    hh = subplot('Position',[0.03+1/4 0.05 1/4-0.06 0.9]);
+    inp64 = imresize(double(im),[64 64]) * 0.3;
+    colorHms = cell(size(hm,1),1);
+    for j = 1:size(hm,1)
+        colorHms{j} = libimg.colorHM(squeeze(hm(j,:,:)));
+        colorHms{j} = colorHms{j} * 255 * 0.7 + permute(inp64,[3 1 2]);
     end
+    totalHm = libimg.compileImages(colorHms, 4, 4, 64);
+    totalHm = permute(totalHm,[2 3 1]);
+    totalHm = uint8(totalHm);
+    imshow(totalHm);
 
     % show 3D skeleton (view 1)
     if exist('hs1','var')

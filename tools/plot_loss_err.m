@@ -1,20 +1,19 @@
-figure(1);
 
-% choose experiment
+exp_name = 'res-64';
 
-% exp_name = 'res-64-t1';  maxy11 = 3e5;  maxy21 = 3e5;  maxy12 = 300;  maxy22 = 300;  clr = 'g';
-% epoch_size = 572;
-% exp_name = 'res-64-t2';  maxy11 = 3e5;  maxy21 = 3e5;  maxy12 = 300;  maxy22 = 300;  clr = 'r';
-% epoch_size = 572;
-% exp_name = 'res-64-t3';  maxy11 = 3e5;  maxy21 = 3e5;  maxy12 = 300;  maxy22 = 300;  clr = 'b';
-% epoch_size = 572;
+maxy11 = 3e5;
+maxy21 = 3e5;
+maxy12 = 300;
+maxy22 = 300;
+clr = 'r';
 
+max_epoch = 75;
+epoch_size = 572;
 disp_int = 100;
 
-% set parameters
-max_epoch = 75;
-
 format = '%s %s %s %s %s %s %s';
+
+figure(1);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 log_file = ['./exp/h36m/' exp_name '/train.log'];

@@ -7,9 +7,9 @@ else
 fi
 
 CUDA_VISIBLE_DEVICES=$gpu_id th main.lua \
-  -expID res-64-t3 \
+  -expID res-64 \
   -nEpochs 75 \
   -batchSize 64 \
   -LR 1e-3 \
-  -netType res-64-t3 \
+  -netType res-64 \
   -penn

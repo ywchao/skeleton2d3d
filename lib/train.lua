@@ -90,9 +90,7 @@ function Trainer:train(epoch, loaders)
     -- Get target
     local target
     if not self.opt.hg then
-      if self.nOutput == 1 then target = repos end
-      if self.nOutput == 3 then target = {repos, trans, focal} end
-      if self.nOutput == 4 then target = {repos, trans, focal, proj} end
+      target = {repos, trans, focal}
     end
 
     -- Forward pass
@@ -208,9 +206,7 @@ function Trainer:test(epoch, iter, loaders, split)
     -- Get target
     local target
     if not self.opt.hg then
-      if self.nOutput == 1 then target = repos end
-      if self.nOutput == 3 then target = {repos, trans, focal} end
-      if self.nOutput == 4 then target = {repos, trans, focal, proj} end
+      target = {repos, trans, focal}
     end
 
     -- Forward pass
@@ -287,13 +283,8 @@ function Trainer:test(epoch, iter, loaders, split)
       end
     end
     if self.opt.dataset == 'penn-crop' then
-      if self.opt.hg then
-        if self.opt.evalOut == 's3' then pred = output[5]:float() end
-        if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
-      else
-        assert(self.nOutput == 4)
-        pred = output[4]:float()
-      end
+      if self.opt.evalOut == 's3' then pred = output[5]:float() end
+      if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
       pred = self:getOrigCoord(pred,center,scale)
       err, ne = self:_computeError(pred,gtpts,ref)
       acc, na = self:_computeAccuracy(pred,gtpts,ref)
@@ -432,25 +423,16 @@ function Trainer:predict(loaders, split)
       if not repos then
         repos = torch.FloatTensor(size, unpack(output[1][1]:size():totable()))
       end
+      if not trans then
+        trans = torch.FloatTensor(size, unpack(output[2][1]:size():totable()))
+      end
+      if not focal then
+        focal = torch.FloatTensor(size, unpack(output[3][1]:size():totable()))
+      end
       poses[i]:copy(sample.repos[1] + sample.trans[1]:view(1,3):expand(sample.repos[1]:size()))
       repos[i]:copy(output[1]:float()[1])
-
-      if self.nOutput > 1 then
-        if not trans then
-          trans = torch.FloatTensor(size, unpack(output[2][1]:size():totable()))
-        end
-        if not focal then
-          focal = torch.FloatTensor(size, unpack(output[3][1]:size():totable()))
-        end
-        trans[i]:copy(output[2]:float()[1])
-        focal[i]:copy(output[3]:float()[1])
-      end
-      if self.nOutput > 3 then
-        if not proj then
-          proj = torch.FloatTensor(size, unpack(output[4][1]:size():totable()))
-        end
-        proj[i]:copy(output[4]:float()[1])
-      end
+      trans[i]:copy(output[2]:float()[1])
+      focal[i]:copy(output[3]:float()[1])
     end
 
     xlua.progress(i, size)

@@ -85,19 +85,11 @@ function M.setup(opt, checkpoint)
       end
     end
   else
-    assert(nOutput == 1 or nOutput == 3 or nOutput == 4)
+    assert(nOutput == 3)
     assert(opt.weightHMap == 1)
-    if nOutput == 3 then
-      criterion.weights[1] = 1
-      criterion.weights[2] = opt.weightTrans
-      criterion.weights[3] = opt.weightFocal
-    end
-    if nOutput == 4 then
-      criterion.weights[1] = 1
-      criterion.weights[2] = opt.weightTrans
-      criterion.weights[3] = opt.weightFocal
-      criterion.weights[4] = opt.weightProj
-    end
+    criterion.weights[1] = 1
+    criterion.weights[2] = opt.weightTrans
+    criterion.weights[3] = opt.weightFocal
   end
 
   -- Convert to CUDA

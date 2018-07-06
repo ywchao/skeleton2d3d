@@ -23,7 +23,7 @@ local loaders = DataLoader.create(opt)
 local trainer = Trainer(model, criterion, opt, nil)
 
 -- Compute error and accuracy
-if opt.hg or #model.outnode.children == 4 then
+if opt.hg then
   trainer:test(0, 0, loaders, 'train')
   trainer:test(0, 0, loaders, 'val')
 end

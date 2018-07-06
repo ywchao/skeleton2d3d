@@ -7,7 +7,7 @@ else
 fi
 
 CUDA_VISIBLE_DEVICES=$gpu_id th main_pred.lua \
-  -expID res-64-t1 \
+  -expID res-64 \
   -dataset penn-crop \
   -data ./data/penn-crop \
-  -modelPath ./exp/h36m/res-64-t1/model_best.t7
+  -modelPath ./exp/h36m/res-64/model_best.t7
