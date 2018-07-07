@@ -1,116 +1,26 @@
-figure(1);
 
-% choose experiment
+exp_name = 'hg-256-res-64-hg0-hgfix';
 
-% dataset = 'h36m';
-% dataset = 'penn-crop';
+maxy11 = 3e5;
+maxy21 = 3e5;
+maxy12 = 300;
+maxy22 = 300;
+maxy13 = 1;
+maxy23 = 1;
+miny13 = 0;
+miny23 = 0;
+clr = 'b';
 
-% exp_name = 'hg-256-res-64-hgfix';
-% epoch_size = 4921;  clr = 'r';
-% exp_name = 'hg-256-res-64-hgfix-llprior-w0.001';
-% epoch_size = 4921;  clr = 'g';
-% exp_name = 'hg-256-res-64-hgfix-llprior-w1';
-% epoch_size = 4921;  clr = 'b';
-
-% maxy11 = 50;  maxy21 = 50;
-% maxy12 = 24;  maxy22 = 24;
-% maxy13 = 1;   maxy23 = 1;
-% miny13 = 0;   miny23 = 0;
-
-% exp_name = 'hg-256-res-64-s3fix-hg-proj-w0.001';
-% epoch_size = 13121;  clr = 'r';
-% exp_name = 'hg-256-res-64-s3fix-hg-proj-w0.0001';
-% epoch_size = 13121;  clr = 'g';
-% exp_name = 'hg-256-res-64-s3fix-hg-proj-w0.00001';
-% epoch_size = 13121;  clr = 'b';
-% exp_name = 'hg-256-res-64-s3fix-hg-proj-w0.000001';
-% epoch_size = 13121;  clr = 'c';
-% exp_name = 'hg-256-res-64-s3fix-hg-proj-w0';
-% epoch_size = 13121;  clr = 'k';
-
-% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0';
-% epoch_size = 13121;  clr = 'k';
-% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0.000001';
-% epoch_size = 13121;  clr = 'b';
-% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0.00001';
-% epoch_size = 13121;  clr = 'c';
-% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0.0001';
-% epoch_size = 13121;  clr = 'g';
-% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0.001';
-% epoch_size = 13121;  clr = 'r';
-% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0.01';
-% epoch_size = 13121;  clr = 'g';
-% exp_name = 'hg-256-res-64-s3fix-s3-proj-w0.1';
-% epoch_size = 13121;  clr = 'b';
-% exp_name = 'hg-256-res-64-s3fix-s3-proj-w1';
-% epoch_size = 13121;  clr = 'c';
-% exp_name = 'hg-256-res-64-s3fix-s3-proj-w10';
-% epoch_size = 13121;  clr = 'm';
-% exp_name = 'hg-256-res-64-s3fix-s3-proj-w100';
-% epoch_size = 13121;  clr = 'k';
-
-% exp_name = 'hg-256-res-64-fts3-s3fix-hg-proj-w0';     epoch_size = 13121;  clr = 'k';
-% exp_name = 'hg-256-res-64-fts3-s3fix-hg-proj-w1e-6';  epoch_size = 13121;  clr = 'r';
-% exp_name = 'hg-256-res-64-fts3-s3fix-hg-proj-w1e-5';  epoch_size = 13121;  clr = 'g';
-% exp_name = 'hg-256-res-64-fts3-s3fix-hg-proj-w1e-4';  epoch_size = 13121;  clr = 'b';
-% exp_name = 'hg-256-res-64-fts3-s3fix-hg-proj-w1e-3';  epoch_size = 13121;  clr = 'c';
-
-% maxy11 = 50;  maxy21 = 50;
-% maxy12 = 5;   maxy22 = 5;
-% maxy13 = 1;   maxy23 = 1;
-% miny13 = 0.5; miny23 = 0.5;
-
-% exp_name = 'hg-256-res-64-h36m-hgfix-w0';
-% epoch_size = 2276;  clr = 'r';
-% exp_name = 'hg-256-res-64-h36m-hgfix-w0.001';
-% epoch_size = 2276;  clr = 'g';
-% exp_name = 'hg-256-res-64-h36m-hgfix-w1';
-% epoch_size = 2276;  clr = 'b';
-
-% exp_name = 'hg-256-res-64-h36m-fthg-hgfix-w0';
-% epoch_size = 2276;  clr = 'r';
-% exp_name = 'hg-256-res-64-h36m-fthg-hgfix-w0.001';
-% epoch_size = 2276;  clr = 'g';
-% exp_name = 'hg-256-res-64-h36m-fthg-hgfix-w1';
-% epoch_size = 2276;  clr = 'b';
-
-% maxy11 = 3e5;  maxy21 = 3e5;
-% maxy12 = 300;  maxy22 = 300;
-% maxy13 = 1;    maxy23 = 1;
-% miny13 = 0;    miny23 = 0;
-
-% exp_name = 'hg-256-res-64-h36m-fthg';
-% epoch_size = 6069;  clr = 'r';
-
-% maxy11 = 4e-3; maxy21 = 4e-3;
-% maxy12 = 0.5;  maxy22 = 0.1;
-% maxy13 = 1;    maxy23 = 1;
-% miny13 = 0;    miny23 = 0.9;
-
-% exp_name = 'hg-256-res-64-h36m-w0';
-% epoch_size = 6069;  clr = 'r';
-% exp_name = 'hg-256-res-64-h36m-w0.001';
-% epoch_size = 6069;  clr = 'g';
-% exp_name = 'hg-256-res-64-h36m-w1';
-% epoch_size = 6069;  clr = 'b';
-
-% maxy11 = 5e4;  maxy21 = 5e4;
-% maxy12 = 150;  maxy22 = 150;
-% maxy13 = 1;    maxy23 = 1;
-% miny13 = 0;    miny23 = 0.6;
-
-% disp_int = 1000;
-% disp_int = 200;
-
-% set parameters
-% max_epoch = 10;
-% max_epoch = 20;
-% max_epoch = 50;
+max_epoch = 50;
+epoch_size = 2276;
+disp_int = 200;
 
 format = '%s %s %s %s %s %s %s';
 
+figure(1);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-log_file = ['./exp/' dataset '/' exp_name '/train.log'];
+log_file = ['./exp/h36m/' exp_name '/train.log'];
 f = fopen(log_file);
 C = textscan(f,format);
 fclose(f);
@@ -156,7 +66,7 @@ axis([0 it(end) ylim]);
 title('training acc');
 xlabel('iteration');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-log_file = ['./exp/' dataset '/' exp_name '/val.log'];
+log_file = ['./exp/h36m/' exp_name '/val.log'];
 f = fopen(log_file);
 C = textscan(f,format);
 fclose(f);

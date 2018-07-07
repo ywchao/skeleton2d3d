@@ -1,16 +1,11 @@
 
-% expID = 'hg-256-res-64-h36m-hgfix-w0'; mode = 1;
-% expID = 'hg-256-res-64-h36m-hgfix-w0.001'; mode = 1;
-% expID = 'hg-256-res-64-h36m-hgfix-w1'; mode = 1;
-% expID = 'hg-256-res-64-h36m-fthg-hgfix-w0'; mode = 1;
-% expID = 'hg-256-res-64-h36m-fthg-hgfix-w0.001'; mode = 1;
-% expID = 'hg-256-res-64-h36m-fthg-hgfix-w1'; mode = 1;
+exp_name = 'hg-256-res-64-hg0-hgfix';
 
 % split = 'train';
-% split = 'val';
+split = 'val';
 
 % set vis root
-vis_root = ['./outputs/vis_h36m/' expID '/' split '/'];
+vis_root = ['./outputs/vis_' exp_name '/h36m_' split '/'];
 makedir(vis_root);
 
 % load annotations
@@ -28,7 +23,7 @@ for i = 1:size(rm,1)
 end
 
 % load predictions
-preds = load(['./exp/h36m/' expID '/preds_' split '.mat']);
+preds = load(['./exp/h36m/' exp_name '/preds_' split '.mat']);
 joints = [10,15,12,16,13,17,14,2,5,3,6,4,7];
 repos = zeros(size(preds.repos,1),17,3);
 repos(:,joints,:) = preds.repos;
@@ -99,10 +94,12 @@ for i = run
     aid = ind2sub(i,2);
     bid = ind2sub(i,3);
     fid = ind2sub(i,4);
+
     vis_file = [vis_root sprintf('%02d_%02d_%1d_%04d.png',sid,aid,bid,fid)];
     if exist(vis_file,'file')
         continue
     end
+
     % show image
     cam = mod(i-1,4)+1;
     im_file = sprintf('data/h36m/frames/%02d/%02d/%1d/%1d_%04d.jpg', ...
@@ -114,31 +111,29 @@ for i = run
     end
     hi = subplot('Position',[0.00+0/7 0.00 1/7-0.00 1.00]);
     imshow(im); hold on;
+
     % draw heatmap
     [input, ~, ~, ~, ~] = dataset_hg.get(i);
     input = permute(input, [2 3 1]);
-    hm_dir = ['./exp/h36m/' expID '/hmap_' split '/'];
+    hm_dir = ['./exp/h36m/' exp_name '/hmap_' split '/'];
     hm_file = [hm_dir num2str(i,'%05d') '.mat'];
-    if exist(hm_file,'file')
-        hm = load(hm_file);
-        hm = hm.hmap;
-    end
+    hm = load(hm_file);
+    hm = hm.hmap;
     if exist('hh','var')
         delete(hh);
     end
-    if exist('hm','var')
-        hh = subplot('Position',[0.00+1/7 0.00 1/7-0.00 1.00]);
-        inp64 = imresize(double(input),[64 64]) * 0.3;
-        colorHms = cell(size(hm,1),1);
-        for j = 1:size(hm,1)
-            colorHms{j} = libimg.colorHM(squeeze(hm(j,:,:)));
-            colorHms{j} = colorHms{j} * 255 * 0.7 + permute(inp64,[3 1 2]);
-        end
-        totalHm = libimg.compileImages(colorHms, 4, 4, 64);
-        totalHm = permute(totalHm,[2 3 1]);
-        totalHm = uint8(totalHm);
-        imshow(totalHm);
+    hh = subplot('Position',[0.00+1/7 0.00 1/7-0.00 1.00]);
+    inp64 = imresize(double(input),[64 64]) * 0.3;
+    colorHms = cell(size(hm,1),1);
+    for j = 1:size(hm,1)
+        colorHms{j} = libimg.colorHM(squeeze(hm(j,:,:)));
+        colorHms{j} = colorHms{j} * 255 * 0.7 + permute(inp64,[3 1 2]);
     end
+    totalHm = libimg.compileImages(colorHms, 4, 4, 64);
+    totalHm = permute(totalHm,[2 3 1]);
+    totalHm = uint8(totalHm);
+    imshow(totalHm);
+
     % show 3D skeleton in camera coordinates
     for j = 1:2
         if j == 1
@@ -193,6 +188,7 @@ for i = run
                 [0.5 0.5 0.5]);
         end
     end
+
     % show 3D skeleton relative to center
     for j = 1:2
         if j == 1
@@ -241,13 +237,14 @@ for i = run
             view([85,10]);
         end
     end
+
     % show projected 2D skeleton
     if exist('hp','var')
         delete(hp);
     end
     hp = subplot('Position',[0.00+6/7 0.00 1/7-0.00 1.00]);
     imshow(im); hold on;
-    preds = load(sprintf('./exp/h36m/%s/eval_%s/%05d.mat',expID,split,i));
+    preds = load(sprintf('./exp/h36m/%s/eval_%s/%05d.mat',exp_name,split,i));
     joints = [10,15,12,16,13,17,14,2,5,3,6,4,7];
     pred = zeros(17,2);
     pred(joints,:) = preds.eval;
@@ -258,6 +255,7 @@ for i = run
     show2DPose(pred',pos2dSkel);
     axis([0 size(im,2) 0 size(im,1)]);
     axis off;
+
     % save figure
     set(gcf,'PaperPositionMode','auto');
     print(gcf,vis_file,'-dpng','-r0');
