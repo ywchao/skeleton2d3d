@@ -3,15 +3,13 @@
 shape_root = './shapeconvex/release/';
 addpath([shape_root 'ssr']);
 addpath([shape_root 'utils']);
-% shape_data = load([shape_root 'data/human/shapeDict.mat']);
 shape_data = load('shapeconvex/shapeDict_h36m.mat');
 
-% exp_name = 'hg-256-res-64-h36m-hg-pred';
-% exp_name = 'hg-256-res-64-h36m-fthg-hg-pred';
+exp_name = 'hg-256-pred';
 
 split = 'val';
 
-save_root = ['./shapeconvex/res_h36m_' exp_name '/' split '/'];
+save_root = ['./shapeconvex/res_' exp_name '/h36m_' split '/'];
 makedir(save_root);
 
 % set opt and init dataset
@@ -43,12 +41,6 @@ parfor i = 1:dataset.size()
     pred_file = sprintf('./exp/h36m/%s/eval_%s/%05d.mat',exp_name,split,i);
     pred = load(pred_file);
     pred = pred.eval;
-    % % convert from 13 to 15 joints
-    % X = convert_joint(pred(:,1)');
-    % Y = convert_joint(pred(:,2)');
-    % % convert joint order
-    % X = X(:,[15,9,11,13,8,10,12,14,1,3,5,7,2,4,6]);
-    % Y = Y(:,[15,9,11,13,8,10,12,14,1,3,5,7,2,4,6]);
     % convert to h36m format
     joints = [10,15,12,16,13,17,14,2,5,3,6,4,7];
     pred_ = zeros(17,2);

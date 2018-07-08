@@ -411,8 +411,12 @@ function Trainer:predict(loaders, split)
       if not paths.filep(eval_file) then
         local center, scale = sample.center, sample.scale
         local pred
-        if self.opt.evalOut == 's3' then pred = output[5]:float() end
-        if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
+        if self.nOutput == 1 then
+          pred = eval.getPreds(output[1]:float())
+        else
+          if self.opt.evalOut == 's3' then pred = output[5]:float() end
+          if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
+        end
         local eval = self:getOrigCoord(pred,center,scale)[1]
         matio.save(eval_file, {eval = eval})
       end

@@ -2,11 +2,9 @@
 % add path and load data
 shape_root = './shapeconvex/release/';
 addpath([shape_root 'utils']);
-% shape_data = load([shape_root 'data/human/shapeDict.mat']);
 shape_data = load('shapeconvex/shapeDict_h36m.mat');
 
-% exp_name = 'hg-256-res-64-h36m-hg-pred';
-% exp_name = 'hg-256-res-64-h36m-fthg-hg-pred';
+exp_name = 'hg-256-pred';
 
 split = 'val';
 
@@ -21,8 +19,8 @@ msize = 4;
 partcolor = {'b','b','r','r','b','g','g','b','b','b','r','r','b','g','g'};
 
 % set directories
-pose_root = ['./shapeconvex/res_h36m_' exp_name '/' split '/'];
-save_root = ['./shapeconvex/vis_h36m_' exp_name '/' split '/'];
+pose_root = ['./shapeconvex/res_' exp_name '/h36m_' split '/'];
+save_root = ['./shapeconvex/vis_' exp_name '/h36m_' split '/'];
 makedir(save_root);
 
 % init dataset
@@ -40,11 +38,13 @@ for i = 1:interval:size(dataset.ind2sub,1)
     bid = dataset.ind2sub(i,3);
     fid = dataset.ind2sub(i,4);
     cam = mod(i-1,4)+1;
+
     % skip if vis file exists
     save_file = sprintf('%s/%02d_%02d_%1d_%04d_%1d.png',save_root,sid,aid,bid,fid,cam);
     if exist(save_file,'file')
         continue
     end
+
     % load 2D prediction
     pred_file = sprintf('./exp/h36m/%s/eval_%s/%05d.mat',exp_name,split,i);
     pred = load(pred_file);
@@ -99,6 +99,7 @@ for i = 1:interval:size(dataset.ind2sub,1)
         'mode','stick');
     axis on;
     grid on;
+
     % save vis to file
     set(gcf,'PaperPositionMode','auto');
     print(gcf,save_file,'-dpng','-r0');
