@@ -12,3 +12,5 @@ addpath('tools');
 addpath('shapeconvex');
 
 addpath('smplify');
+
+addpath('evaluation');
