@@ -212,21 +212,4 @@ function M.loadSkel3DNet(model, model_s3, fix)
   model:zeroGradParameters()
 end
 
-function M.loadHGS3(model, model_hgs3, fix_hg, fix_s3)
-  -- Load weight and bias
-  for i = 1, #model_hgs3.modules do
-    -- Tie weight and bias
-    local name = torch.typename(model.modules[i])
-    local name_hgs3 = torch.typename(model_hgs3.modules[i])
-    assert(name == name_hgs3, 'weight loading error: class name mismatch')
-    tieWeightBiasOneModule(model_hgs3.modules[i], model.modules[i])
-    if fix_hg and i <= 37 then
-      fixWeightBiasOneModule(model.modules[i])
-    end
-    if fix_s3 and i >= 38 then
-      fixWeightBiasOneModule(model.modules[i])
-    end
-  end
-end
-
 return M

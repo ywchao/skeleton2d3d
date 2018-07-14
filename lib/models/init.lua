@@ -40,13 +40,6 @@ function M.setup(opt, checkpoint)
         local model_s3 = torch.load(opt.s3Model)
         Model.loadSkel3DNet(model, model_s3, opt.s3Fix)
       end
-      if opt.hgs3Model ~= 'none' then
-        assert(opt.hgModel == 'none' and opt.s3Model == 'none')
-        assert(paths.filep(opt.hgs3Model),
-            'initial hg/s3 combined model not found: ' .. opt.hgs3Model)
-        local model_hgs3 = torch.load(opt.hgs3Model)
-        Model.loadHGS3(model, model_hgs3, opt.hgFix, opt.s3Fix)
-      end
     end
   end
 
@@ -64,17 +57,10 @@ function M.setup(opt, checkpoint)
   if opt.hg then
     if nOutput ~= 1 then
       assert(nOutput == 5)
-      if opt.dataset == 'h36m' then
-        criterion.weights[2] = 1
-        criterion.weights[3] = 1
-        criterion.weights[4] = 1
-      end
-      if opt.dataset == 'penn-crop' then
-        criterion.weights[2] = 0
-        criterion.weights[3] = 0
-        criterion.weights[4] = 0
-      end
       criterion.weights[1] = opt.weightHMap
+      criterion.weights[2] = 1
+      criterion.weights[3] = 1
+      criterion.weights[4] = 1
       criterion.weights[5] = opt.weightProj
     end
   else

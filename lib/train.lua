@@ -119,46 +119,34 @@ function Trainer:train(epoch, loaders)
     local center, scale = sample.center, sample.scale
     local gtpts = sample.gtpts
     local ref = self:getRef(scale)
-    if self.opt.dataset == 'h36m' then
-      if self.nOutput == 1 then
-        pred = eval.getPreds(output[1]:float())
-        pred = self:getOrigCoord(pred,center,scale)
-        err, ne = self:_computeError(pred,gtpts,ref)
-        acc, na = self:_computeAccuracy(pred,gtpts,ref)
-        assert(ne == na)
-        err = err / ne
-        acc = acc / ne
-      else
-        repos = repos:float()
-        if self.opt.hg then
-          pred = output[2]:float()
-        else
-          pred = output[1]:float()
-        end
-        err = torch.csub(repos,pred):pow(2):sum(3):sqrt():sum()
-        acc = 0/0
-        num = pred:numel()/3
-        err = err / num
-        -- store 2d error to acc for hg
-        if self.opt.hg then
-          if self.opt.evalOut == 's3' then pred = output[5]:float() end
-          if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
-          pred = self:getOrigCoord(pred,center,scale)
-          acc, na = self:_computeAccuracy(pred,gtpts,ref)
-          assert(na == num)
-          acc = acc / na
-        end
-      end
-    end
-    if self.opt.dataset == 'penn-crop' then
-      if self.opt.evalOut == 's3' then pred = output[5]:float() end
-      if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
+    if self.nOutput == 1 then
+      pred = eval.getPreds(output[1]:float())
       pred = self:getOrigCoord(pred,center,scale)
       err, ne = self:_computeError(pred,gtpts,ref)
       acc, na = self:_computeAccuracy(pred,gtpts,ref)
       assert(ne == na)
       err = err / ne
       acc = acc / ne
+    else
+      repos = repos:float()
+      if self.opt.hg then
+        pred = output[2]:float()
+      else
+        pred = output[1]:float()
+      end
+      err = torch.csub(repos,pred):pow(2):sum(3):sqrt():sum()
+      acc = 0/0
+      num = pred:numel()/3
+      err = err / num
+      -- store 2d error to acc for hg
+      if self.opt.hg then
+        if self.opt.evalOut == 's3' then pred = output[5]:float() end
+        if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
+        pred = self:getOrigCoord(pred,center,scale)
+        acc, na = self:_computeAccuracy(pred,gtpts,ref)
+        assert(na == num)
+        acc = acc / na
+      end
     end
 
     -- Print and log
