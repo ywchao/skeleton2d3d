@@ -140,8 +140,7 @@ function Trainer:train(epoch, loaders)
       err = err / num
       -- store 2d error to acc for hg
       if self.opt.hg then
-        if self.opt.evalOut == 's3' then pred = output[5]:float() end
-        if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
+        pred = output[5]:float()
         pred = self:getOrigCoord(pred,center,scale)
         acc, na = self:_computeAccuracy(pred,gtpts,ref)
         assert(na == num)
@@ -257,8 +256,7 @@ function Trainer:test(epoch, iter, loaders, split)
         num = pred:numel()/3
         -- store 2d error to acc for hg
         if self.opt.hg then
-          if self.opt.evalOut == 's3' then pred = output[5]:float() end
-          if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
+          pred = output[5]:float()
           pred = self:getOrigCoord(pred,center,scale)
           acc, na = self:_computeAccuracy(pred,gtpts,ref)
           assert(na == num)
@@ -266,8 +264,7 @@ function Trainer:test(epoch, iter, loaders, split)
       end
     end
     if self.opt.dataset == 'penn-crop' then
-      if self.opt.evalOut == 's3' then pred = output[5]:float() end
-      if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
+      pred = output[5]:float()
       pred = self:getOrigCoord(pred,center,scale)
       err, ne = self:_computeError(pred,gtpts,ref)
       acc, na = self:_computeAccuracy(pred,gtpts,ref)
@@ -396,8 +393,7 @@ function Trainer:predict(loaders, split)
         if self.nOutput == 1 then
           pred = eval.getPreds(output[1]:float())
         else
-          if self.opt.evalOut == 's3' then pred = output[5]:float() end
-          if self.opt.evalOut == 'hg' then pred = eval.getPreds(output[1]:float()) end
+          pred = output[5]:float()
         end
         local eval = self:getOrigCoord(pred,center,scale)[1]
         matio.save(eval_file, {eval = eval})
