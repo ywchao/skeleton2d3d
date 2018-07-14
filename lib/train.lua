@@ -85,7 +85,6 @@ function Trainer:train(epoch, loaders)
     local focal = sample.focal:cuda()
     local hmap = sample.hmap:cuda()
     local proj = sample.proj:cuda()
-    local mean = sample.mean:cuda()
     
     -- Get target
     local target
@@ -101,8 +100,7 @@ function Trainer:train(epoch, loaders)
       else
         local proj_ = proj:clone()
         proj_[proj_:eq(0)] = output[5][proj_:eq(0)]
-        if self.nOutput == 5 then target = {hmap, repos, trans, focal, proj_} end
-        if self.nOutput == 6 then target = {hmap, repos, trans, focal, proj_, mean} end
+        target = {hmap, repos, trans, focal, proj_}
       end
     end
     local loss = self.criterion:forward(self.model.output, target)
@@ -201,7 +199,6 @@ function Trainer:test(epoch, iter, loaders, split)
     local focal = sample.focal:cuda()
     local hmap = sample.hmap:cuda()
     local proj = sample.proj:cuda()
-    local mean = sample.mean:cuda()
 
     -- Get target
     local target
@@ -234,11 +231,9 @@ function Trainer:test(epoch, iter, loaders, split)
         output[3] = torch.add(trans1,trans2):div(2)
         output[4] = output[4]:mean(1)
         output[5] = torch.add(proj1,proj2):div(2)
-        if self.nOutput == 6 then output[6] = output[6]:mean(1) end
         local proj_ = proj:clone()
         proj_[proj_:eq(0)] = output[5][proj_:eq(0)]
-        if self.nOutput == 5 then target = {hmap, repos, trans, focal, proj_} end
-        if self.nOutput == 6 then target = {hmap, repos, trans, focal, proj_, mean} end
+        target = {hmap, repos, trans, focal, proj_}
       end
     end
     local loss = self.criterion:forward(output, target)
@@ -360,7 +355,6 @@ function Trainer:predict(loaders, split)
         output[3] = torch.add(trans1,trans2):div(2)
         output[4] = output[4]:mean(1)
         output[5] = torch.add(proj1,proj2):div(2)
-        if self.nOutput == 6 then output[6] = output[6]:mean(1) end
       end
     end
 

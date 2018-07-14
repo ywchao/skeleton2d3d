@@ -63,7 +63,7 @@ function M.setup(opt, checkpoint)
   end
   if opt.hg then
     if nOutput ~= 1 then
-      assert(nOutput == 5 or nOutput == 6)
+      assert(nOutput == 5)
       if opt.dataset == 'h36m' then
         criterion.weights[2] = 1
         criterion.weights[3] = 1
@@ -74,15 +74,8 @@ function M.setup(opt, checkpoint)
         criterion.weights[3] = 0
         criterion.weights[4] = 0
       end
-      if nOutput == 5 then
-        criterion.weights[1] = opt.weightHMap
-        criterion.weights[5] = opt.weightProj
-      end
-      if nOutput == 6 then
-        criterion.weights[1] = opt.weightHMap
-        criterion.weights[5] = opt.weightProj
-        criterion.weights[6] = opt.weightLLPrior
-      end
+      criterion.weights[1] = opt.weightHMap
+      criterion.weights[5] = opt.weightProj
     end
   else
     assert(nOutput == 3)

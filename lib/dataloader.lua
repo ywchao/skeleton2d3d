@@ -91,7 +91,6 @@ function DataLoader:run(kwargs)
                local focal
                local hmap, hmapSize
                local proj, projSize
-               local mean, meanSize
                local gtpts, gtptsSize
                local center
                local scale
@@ -125,10 +124,6 @@ function DataLoader:run(kwargs)
                      projSize = sample.proj:size():totable()
                      proj = torch.FloatTensor(sz, unpack(projSize))
                   end
-                  if not mean then
-                     meanSize = sample.mean:size():totable()
-                     mean = torch.FloatTensor(sz, unpack(meanSize))
-                  end
                   if not gtpts then
                      gtptsSize = sample.gtpts:size():totable()
                      gtpts = torch.FloatTensor(sz, unpack(gtptsSize))
@@ -145,7 +140,6 @@ function DataLoader:run(kwargs)
                   focal[i] = sample.focal
                   hmap[i] = sample.hmap
                   proj[i] = sample.proj
-                  mean[i] = sample.mean
                   gtpts[i] = sample.gtpts
                   center[i] = sample.center
                   scale[i] = sample.scale
@@ -162,7 +156,6 @@ function DataLoader:run(kwargs)
                   focal = focal,
                   hmap = hmap,
                   proj = proj,
-                  mean = mean,
                   gtpts = gtpts,
                   center = center,
                   scale = scale,

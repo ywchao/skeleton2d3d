@@ -3,7 +3,6 @@
 require 'hdf5'
 require 'image'
 
-local matio = require 'matio'
 local img = require 'lib/util/img'
 local geometry = require 'lib/util/geometry'
 
@@ -25,23 +24,6 @@ function PennCropDataset:__init(opt, split)
   self.numPt = self.part:size(2)
   -- Check if the model contains hourglass for pose estimation
   self.hg = opt.hg
-  -- Get mean limb length
-  self.mean = self:_getMeanLimbLen()
-end
-
--- Get mean limb length
-function PennCropDataset:_getMeanLimbLen()
-  local joints = torch.LongTensor{10,15,12,16,13,17,14,2,5,3,6,4,7}
-  local conn = torch.LongTensor{
-      { 2, 1}, { 3, 1}, { 4, 2}, { 5, 3}, { 6, 4}, { 7, 5},
-      { 8, 2}, { 9, 3}, {10, 8}, {11, 9}, {12,10}, {13,11}
-  }
-  local coord_w = matio.load('./data/h36m/train.mat','coord_w')
-  coord_w = coord_w:contiguous():view(-1,coord_w:size(2)/3,3)
-  coord_w = coord_w:index(2,joints)
-  local d1 = coord_w:index(2,conn:select(2,1))
-  local d2 = coord_w:index(2,conn:select(2,2))
-  return torch.csub(d1,d2):pow(2):sum(3):sqrt():mean(1):squeeze()
 end
 
 -- Get image path
@@ -156,7 +138,6 @@ function PennCropDataset:get(idx, train)
     focal = torch.zeros(1),
     hmap = hm,
     proj = proj,
-    mean = self.mean,
     gtpts = gtpts,
     center = center,
     scale = scale,
