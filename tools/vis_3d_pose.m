@@ -3,7 +3,7 @@ H36MDataBase.instance();
 
 Features{1} = H36MPose3DPositionsFeature();
 
-vis_root = 'outputs/vis_3d_pose/';
+vis_root = 'output/vis_3d_pose/';
 
 figure(1);
 

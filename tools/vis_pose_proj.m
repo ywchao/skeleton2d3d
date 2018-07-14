@@ -1,7 +1,7 @@
 
 rseed;
 
-vis_dir = 'outputs/vis_pose_proj/';
+vis_dir = 'output/vis_pose_proj/';
 makedir(vis_dir);
 
 db = H36MDataBase.instance();

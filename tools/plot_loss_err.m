@@ -99,7 +99,7 @@ subplot('Position',[0.05+1/2 0.05 1/2-0.05 0.4]);
 axis([lim(1:2) 0 maxy22]);
 
 % save to file
-save_file = ['outputs/plot_' exp_name '.pdf'];
+save_file = ['output/plot_' exp_name '.pdf'];
 if ~exist(save_file,'file')
     set(gcf,'PaperPosition',[0 0 8 6]);
     set(gcf,'PaperOrientation','landscape');

@@ -5,7 +5,7 @@ exp_name = 'hg-256-res-64-hg0-hgfix';
 split = 'val';
 
 % set vis root
-vis_root = ['./outputs/vis_' exp_name '/penn_' split '/'];
+vis_root = ['./output/vis_' exp_name '/penn_' split '/'];
 
 % load annotations
 ind2sub = hdf5read(['./data/penn-crop/' split '.h5'],'ind2sub');

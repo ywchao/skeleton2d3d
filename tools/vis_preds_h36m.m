@@ -5,7 +5,7 @@ exp_name = 'res-64';
 split = 'val';
 
 % set vis root
-vis_root = ['./outputs/vis_' exp_name '/h36m_' split '/'];
+vis_root = ['./output/vis_' exp_name '/h36m_' split '/'];
 makedir(vis_root);
 
 % load annotations
