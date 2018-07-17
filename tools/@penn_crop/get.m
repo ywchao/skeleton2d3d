@@ -13,10 +13,9 @@ im = obj.img.crop(im, center, scale, 0, obj.inputRes);
 
 % Get projection
 pts = permute(obj.part(idx,:,:),[2 3 1]);
-vis = permute(obj.visible(idx,:),[2 1]);
 proj = zeros(size(pts));
 for i = 1:size(pts,1)
-    if vis(i)
+    if pts(i,1) ~= 0 && pts(i,2) ~= 0
         proj(i,:) = obj.img.transform(pts(i,:), center, scale, 0, obj.outputRes, false, false);
     end
 end
@@ -24,7 +23,7 @@ end
 % Generate heatmap
 hm = zeros(obj.outputRes,obj.outputRes,size(pts,1));
 for i = 1:size(pts,1)
-    if vis(i)
+    if pts(i,1) ~= 0 && pts(i,2) ~= 0
         hm(:,:,i) = obj.img.drawGaussian(hm(:,:,i),round(proj(i,:)),2);
     end
 end

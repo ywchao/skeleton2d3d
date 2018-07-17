@@ -9,10 +9,8 @@ vis_root = ['./output/vis_' exp_name '/penn_' split '/'];
 
 % load annotations
 ind2sub = hdf5read(['./data/penn-crop/' split '.h5'],'ind2sub');
-visible = hdf5read(['./data/penn-crop/' split '.h5'],'visible');
 part = hdf5read(['./data/penn-crop/' split '.h5'],'part');
 ind2sub = permute(ind2sub,[2 1]);
-visible = permute(visible,[2 1]);
 part = permute(part,[3 2 1]);
 
 % load predictions

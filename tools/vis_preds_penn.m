@@ -9,10 +9,8 @@ vis_root = ['./output/vis_' exp_name '/penn_' split '/'];
 
 % load annotations
 ind2sub = hdf5read(['./data/penn-crop/' split '.h5'],'ind2sub');
-visible = hdf5read(['./data/penn-crop/' split '.h5'],'visible');
 part = hdf5read(['./data/penn-crop/' split '.h5'],'part');
 ind2sub = permute(ind2sub,[2 1]);
-visible = permute(visible,[2 1]);
 part = permute(part,[3 2 1]);
 
 % load predictions
@@ -107,12 +105,12 @@ for i = run
         x2 = part(i,child,1);
         y2 = part(i,child,2);
         % skip invisible joints
-        if visible(i,child)
+        if x2 ~= 0 && y2 ~= 0
             plot(x2, y2, 'o', ...
                 'color', partcolor{child}, ...
                 'MarkerSize', msize, ...
                 'MarkerFaceColor', partcolor{child});
-            if visible(i,pa(child))
+            if x1 ~= 0 && y1 ~= 0
                 plot(x1, y1, 'o', ...
                     'color', partcolor{child}, ...
                     'MarkerSize', msize, ...

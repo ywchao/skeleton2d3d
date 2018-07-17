@@ -22,7 +22,7 @@ valid_ind = read_file_lines(vind_file)
 valid_ind = [int(x) for x in valid_ind]
 
 # init variables
-keys = ['ind2sub','part','visible']
+keys = ['ind2sub','part']
 annot_tr = {k:[] for k in keys}
 annot_vl = {k:[] for k in keys}
 annot_ts = {k:[] for k in keys}
@@ -58,7 +58,6 @@ for idx in xrange(penn.nimages):
   # Add info to annotation list
   annot['ind2sub'] += [[s_ind,f_ind]]
   annot['part'] += [coords]
-  annot['visible'] += [vis]
 
   # Show progress
   print "images\rprocessed",idx+1,

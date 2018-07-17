@@ -3,7 +3,6 @@ classdef penn_crop
         split
         dir
         ind2sub
-        visible
         part
         inputRes
         outputRes
@@ -19,7 +18,6 @@ classdef penn_crop
             % load annotation
             annot_file = fullfile(opt.data, [split '.h5']);
             obj.ind2sub = permute(hdf5read(annot_file,'ind2sub'),[2 1]);
-            obj.visible = permute(hdf5read(annot_file,'visible'),[2 1]);
             obj.part = permute(hdf5read(annot_file,'part'),[3 2 1]);
             % get input and output resolution
             obj.inputRes = opt.inputResHG;
