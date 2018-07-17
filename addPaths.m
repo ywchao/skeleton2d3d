@@ -6,9 +6,6 @@ addpath('h36m_utils/Release-v1.1/utils');
 addpath('h36m_utils/lawrennd-mocap');
 
 addpath('common');
-addpath('paper');
-addpath('tools');
-
-addpath('shapeconvex');
-
 addpath('evaluation');
+addpath('shapeconvex');
+addpath('tools');
