@@ -1,5 +1,5 @@
 
-M = {}
+local M = {}
 
 -------------------------------------------------------------------------------
 -- Helpful functions for evaluation
@@ -27,7 +27,7 @@ function M.getPreds(hm)
     preds[{{}, {}, 1}]:apply(function(x) return (x - 1) % hm:size(4) + 1 end)
     -- bug: hm:size(3) -> hm:size(4)?
     preds[{{}, {}, 2}]:add(-1):div(hm:size(3)):floor():add(1)
-    return preds
+    return preds, max
 end
 
 function M.distAccuracy(dists, thr)
