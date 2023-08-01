@@ -4,7 +4,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../" && pwd )/exp"
 mkdir -p $DIR && cd $DIR
 
 FILE=precomputed_s2d3d_models_prediction.tar.gz
-ID=15RObC0S1WQXEz_ArVwDWbe9VtJB_G2zU
+ID=1oIGl91PafQBIjAyzSfeGWunl-mGo7Ynk
 
 if [ -f $FILE ]; then
   echo "File already exists..."
