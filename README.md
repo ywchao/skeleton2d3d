@@ -8,7 +8,7 @@ This repo, together with [image-play](https://github.com/ywchao/image-play) and 
 Yu-Wei Chao, Jimei Yang, Brian Price, Scott Cohen, Jia Deng  
 IEEE Conference on Computer Vision and Pattern Recognition (CVPR), 2017  
 
-Check out the [project site](http://www-personal.umich.edu/~ywchao/image-play/) for more details.
+Check out the [project site](https://umich-ywchao-image-play.github.io/) for more details.
 
 ### Role
 
